@@ -1,7 +1,7 @@
 #ifndef TEMPLATE_POSTTAGSYSTEM_
 #define TEMPLATE_POSTTAGSYSTEM_
 // See Turing.cpp
-#define Helpers_ SW85BXKORF88XRV4M7J7BTR6Q22WKUJ7
+#define Helpers_ PostTagSW85BXKORF88XRV4M7J7BTR6Q22WKUJ7
 
 // String of symbols. Basically list of anything, but named for human's sake
 template<class... Symbols> struct String;
@@ -77,4 +77,5 @@ struct CyclicTag<String<One,Symbols...>,CyclicProductions<TopProduction,OtherPro
 	> Next;
 };
 
+#undef Helpers_
 #endif

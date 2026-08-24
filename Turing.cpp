@@ -3,7 +3,7 @@
 // Anon namespacing helpers doesn't actually work.
 // This is required to prevent collisions.
 // I.e. use random characters to create a unique-ish namespace.
-#define Helpers_ S4YM0SUJ4VJQ5BWRD6CT1JCH0XPS2AGM
+#define Helpers_ TuringMachineS4YM0SUJ4VJQ5BWRD6CT1JCH0XPS2AGM
 
 template<class... Symbols> struct Tape;
 struct HaltState{}; // Definition required for specialization
