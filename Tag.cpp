@@ -1,11 +1,12 @@
 #ifndef TEMPLATE_POSTTAGSYSTEM_
 #define TEMPLATE_POSTTAGSYSTEM_
+// See Turing.cpp
+#define Helpers_ SW85BXKORF88XRV4M7J7BTR6Q22WKUJ7
 
 // String of symbols. Basically list of anything, but named for human's sake
 template<class... Symbols> struct String;
 
-// I used to make XMergeStrings, etc. instead of just anon namespacing it
-namespace{
+namespace Helpers_{
 	template<class String1, class String2> struct MergeStrings;
 	template<class... Symbols1, class... Symbols2>
 	struct MergeStrings<String<Symbols1...>,String<Symbols2...>>{
@@ -20,7 +21,7 @@ template<class Symbol1, class Symbol2, class... Symbols, template<class> class P
 struct TwoTag<String<Symbol1,Symbol2,Symbols...>,Productions,HaltSymbol>{
 	typedef String<Symbol1,Symbol2,Symbols...> Out;
 	typedef TwoTag<
-		typename MergeStrings<String<Symbols...>,typename Productions<Symbol1>::Produces>,
+		typename Helpers_::MergeStrings<String<Symbols...>,typename Productions<Symbol1>::Produces>,
 		Productions,HaltSymbol
 	> Next;
 };
