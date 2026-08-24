@@ -53,4 +53,28 @@ struct TwoTag<String<>,Productions,HaltSymbol>{
 	> Next;
 };
 
+
+// Technically identical to String, but named for human's sake
+template<class... ProductionStrings> struct CyclicProductions;
+
+template<class String, class Productions, class ZeroSymbol, class OneSymbol> struct CyclicTag;
+template<class... Symbols, class TopProduction, class... OtherProductions, class Zero, class One>
+struct CyclicTag<String<Zero,Symbols...>,CyclicProductions<TopProduction,OtherProductions...>,Zero,One>{
+	typedef String<Zero,Symbols...> Out;
+	typedef CyclicTag<
+		String<Symbols...>,
+		CyclicProductions<OtherProductions,TopProduction>,
+		Zero,One
+	> Next;
+};
+template<class... Symbols, class TopProduction, class... OtherProductions, class Zero, class One>
+struct CyclicTag<String<One,Symbols...>,CyclicProductions<TopProduction,OtherProductions...>,Zero,One>{
+	typedef String<One,Symbols...> Out;
+	typedef CyclicTag<
+		typename Helpers_::MergeStrings<String<Symbols...>,TopProduction>::value,
+		CyclicProductions<OtherProductions,TopProduction>,
+		Zero,One
+	> Next;
+};
+
 #endif
