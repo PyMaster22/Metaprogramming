@@ -49,13 +49,7 @@ template<class Int1, class Int2> struct Equal;
 template<class Int1, class Int2> struct Equal{
 	typedef Zero value;
 };
-template<class Int1, class Int2 struct Equal<Succ<Int1>,Succ<Int2>>{
-	typedef typename Equal<Int1,Int2>::value value;
-};
-template<class Int1, class Int2> struct Equal<Pred<Int1>,Pred<Int2>>{
-	typedef typename Equal<Int1,Int2>::value value;
-};
-template<> struct Equal<Zero,Zero>{
+template<class Int> struct Equal<Int,Int>{
 	typedef Succ<Zero> value;
 };
 
