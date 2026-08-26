@@ -30,6 +30,7 @@ template<class T, class F> struct Ternary<True,T,F>{
 template<class Bool1, class Bool2> struct And;
 template<class Bool1, class Bool2> struct Or;
 template<class Bool1> struct Not;
+template<class Bool1, class Bool2> struct Xor;
 
 template<class Bool1, class Bool2> struct And{
 	typedef typename CastToBool<typename Ternary<Bool1,Bool2,False>::value>::value value;
@@ -39,6 +40,12 @@ template<class Bool1, class Bool2> struct Or{
 };
 template<class Bool1> struct Not{
 	typedef typename Ternary<Bool1,False,True>::value value;
+};
+template<class Bool1, class Bool2> struct Xor{
+	typedef typename Ternary<Bool1,
+		typename Not<Bool2>::value,
+		Bool2
+	>::value value;
 };
 
 #undef Helpers_
