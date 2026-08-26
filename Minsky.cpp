@@ -1,6 +1,6 @@
 #ifndef TEMPLATE_MINSKYMACHINE_
 #define TEMPLATE_MINSKYMACHINE_
-#include "Peano.cpp"
+#include "Numbers/Peano.cpp"
 // See Turing.cpp
 #define Helpers_ MinskyMachineW2RNUWRV0ENZ6429JA3YC3YINUPEDLEX
 
