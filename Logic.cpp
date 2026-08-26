@@ -48,5 +48,10 @@ template<class Bool1, class Bool2> struct Xor{
 	>::value value;
 };
 
+template<class Anything> struct Identity;
+template<class X> struct Identity{
+	typedef X value;
+};
+
 #undef Helpers_
 #endif
