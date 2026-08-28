@@ -288,6 +288,7 @@ struct RightShift<Nat<Bit1,Bits...>,ToShift>{
 /* Standard arithmetic */
 template<class Nat1, class Nat2> struct Add;
 template<class Nat1, class Nat2> struct Multiply;
+template<class Nat1, class Nat2> struct Subtract;
 
 
 template<> struct Add<Nat<>,Nat<>>{
@@ -348,6 +349,45 @@ namespace Helpers_{
 }
 template<class Nat1, class Nat2> struct Multiply{
 	typedef typename Helpers_::XMultiply<Nat1,Nat2,Nat<>>::value value;
+};
+
+namespace Helpers_{
+	template<class Nat1, class Nat2> struct XSubtract;
+	template<class... Bits1, class... Bits2>
+	struct XSubtract<Nat<False,Bits1...>,Nat<False,Bits2...>>{
+		typedef typename NatNatToNat<Nat<
+			False,
+			typename XSubtract<Nat<Bits1...>,Nat<Bits2...>>::value
+		>>::value value;
+	};
+	template<class... Bits1, class... Bits2>
+	struct XSubtract<Nat<True,Bits1...>,Nat<False,Bits2...>>{
+		typedef typename NatNatToNat<Nat<
+			True,
+			typename XSubtract<Nat<Bits1...>,Nat<Bits2...>>::value
+		>>::value value;
+	};
+	template<class... Bits1, class... Bits2>
+	struct XSubtract<Nat<False,Bits1...>,Nat<True,Bits2...>>{
+		typedef typename ::SubtractOne<typename NatNatToNat<Nat<
+			False,
+			typename XSubtract<Nat<Bits1...>,Nat<Bits2...>>::value
+		>>::value>::value value;
+	};
+	template<class... Bits1, class... Bits2>
+	struct XSubtract<Nat<True,Bits1...>,Nat<True,Bits2...>>{
+		typedef typename NatNatToNat<Nat<
+			False,
+			typename XSubtract<Nat<Bits1...>,Nat<Bits2...>>::value
+		>>::value value;
+	};
+}
+template<class Nat1, class Nat2>
+struct Subtract{
+	typedef typename Ternary<typename GreaterThan<Nat1,Nat2>::value,
+		Helpers_::XSubtract<Nat1,Nat2>,
+		Identity<Nat<>>
+	>::value::value value;
 };
 
 
