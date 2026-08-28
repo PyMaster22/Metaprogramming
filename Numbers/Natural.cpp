@@ -73,6 +73,8 @@ template<class Nat1, class Nat2> struct BitwiseAnd;
 template<class Nat1, class Nat2> struct BitwiseOr;
 template<class Nat1> struct BitwiseNot;
 template<class Nat1, class Nat2> struct BitwiseXor;
+template<class Nat, class ToShift> struct LeftShift;
+template<class Nat, class ToShift> struct RightShift;
 
 template<class Nat1>
 struct BitwiseAnd<Nat1,Nat<>>{
@@ -142,9 +144,33 @@ struct BitwiseXor<Nat<Bit1,Bits1...>,Nat<Bit2,Bits2...>>{
 	>>::value value;
 };
 
+template<class ToShift>
+struct LeftShift<Nat<>,ToShift>{
+	typedef Nat<> value;
+};
+template<class... Bits, class ToShift>
+struct LeftShift<Nat<Bits...>,ToShift>{
+	typedef typename Ternary<typename Equal<ToShift,Nat<>>::value,
+		Identity<Nat<Bits...>>,
+		LeftShift<Nat<False,Bits...>,typename SubtractOne<ToShift>::value>
+	>::value::value value;
+};
+template<class ToShift>
+struct RightShift<Nat<>,ToShift>{
+	typedef Nat<> value;
+};
+template<class Bit1, class... Bits, class ToShift>
+struct RightShift<Nat<Bit1,Bits...>,ToShift>{
+	typedef typename Ternary<typename Equal<ToShift,Nat<>>::value,
+		Identity<Nat<Bit1,Bits...>>,
+		RightShift<Nat<Bits...>,typename SubtractOne<ToShift>::value>
+	>::value::value value;
+};
+
+
 /* Standard arithmetic */
 template<class Nat1, class Nat2> struct Add;
-template<class Nat1, class Nat2> struct Subtract;
+template<class Nat1, class Nat2> struct Multiply;
 
 
 template<> struct Add<Nat<>,Nat<>>{
@@ -183,6 +209,28 @@ struct Add<Nat<True,Bits1...>,Nat<True,Bits2...>>{
 		False,
 		typename Add<Nat<Bits1...>,Nat<Bits2...>>::value
 	>>::value>::value>::value value;
+};
+
+namespace Helpers_{
+	template<class Nat1, class Nat2, class Accumulator> struct XMultiply;
+	template<class... Bits1, class Nat2, class... ABits>
+	struct XMultiply<Nat<False,Bits1...>,Nat2,Nat<ABits...>>{
+		typedef typename ::Ternary<typename ::Equal<Nat<Bits1...>,Nat<>>::value,
+			::Identity<Nat<ABits...>>,
+			XMultiply<typename ::SubtractOne<Nat<False,Bits1...>>::value,Nat2,Nat<False,ABits...>>
+		>::value::value value;
+	};
+	template<class... Bits1, class Nat2, class... ABits>
+	struct XMultiply<Nat<True,Bits1...>,Nat2,Nat<ABits...>>{
+		typedef typename XMultiply<
+			Nat<False,Bits1...>,
+			Nat2,
+			typename ::Add<Nat2,Nat<ABits...>>::value
+		>::value value;
+	};
+}
+template<class Nat1, class Nat2> struct Multiply{
+	typedef typename Helpers_::XMultiply<Nat1,Nat2,Nat<>>::value value;
 };
 
 
