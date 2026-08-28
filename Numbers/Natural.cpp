@@ -9,9 +9,79 @@ template<class... Bits> struct Nat;
 
 namespace Helpers_{
 	template<class Nat> struct NatNatToNat;
+	template<class Nat> struct StripTrailingFalses;
+	template<class Nat1, class Nat2> struct CheckEqualLength;
+	template<class Nat1, class Nat2> struct CheckLongerThan;
+	template<class Nat1> struct ReverseBits;
+
 	template<class Bit, class... NatBits>
 	struct NatNatToNat<Nat<Bit,Nat<NatBits...>>>{
 		typedef Nat<Bit,NatBits...> value;
+	};
+	template<class... NatBits, class Bit>
+	struct NatNatToNat<Nat<Nat<NatBits...>,Bit>>{
+		typedef Nat<NatBits...,Bit> value;
+	};
+	template<class Bit>
+	struct NatNatToNat<Nat<Bit,Nat<False>>>{
+		typedef Nat<Bit> value;
+	};
+
+	template<class Nat> struct StripTrailingFalses{
+		typedef Nat value;
+	};
+	template<class Bit1, class... Bits>
+	struct StripTrailingFalses<Nat<Bit1,Bits...>>{
+		typedef typename NatNatToNat<Nat<
+			Bit1,
+			typename StripTrailingFalses<Nat<Bits...>>::value
+		>>::value value;
+	};
+
+	template<class Bit1, class... Bits1, class Bit2, class... Bits2>
+	struct CheckEqualLength<Nat<Bit1,Bits1...>,Nat<Bit2,Bits2...>>{
+		typedef typename CheckEqualLength<Nat<Bits1...>,Nat<Bits2...>>::value value;
+	};
+	template<class... Bits1>
+	struct CheckEqualLength<Nat<Bits1...>,Nat<>>{
+		typedef False value;
+	};
+	template<class... Bits2>
+	struct CheckEqualLength<Nat<>,Nat<Bits2...>>{
+		typedef False value;
+	};
+	template<>
+	struct CheckEqualLength<Nat<>,Nat<>>{
+		typedef True value;
+	};
+	
+	template<class Bit1, class... Bits1, class Bit2, class... Bits2>
+	struct CheckLongerThan<Nat<Bit1,Bits1...>,Nat<Bit2,Bits2...>>{
+		typedef typename CheckLongerThan<Nat<Bits1...>,Nat<Bits2...>>::value value;
+	};
+	template<class... Bits1>
+	struct CheckLongerThan<Nat<Bits1...>,Nat<>>{
+		typedef True value;
+	};
+	template<class... Bits2>
+	struct CheckLongerThan<Nat<>,Nat<Bits2...>>{
+		typedef False value;
+	};
+	template<>
+	struct CheckLongerThan<Nat<>,Nat<>>{
+		typedef False value;
+	};
+
+	template<class Nat>
+	struct ReverseBits{
+		typedef Nat value;
+	};
+	template<class Bit1, class... Bits>
+	struct ReverseBits<Nat<Bit1,Bits...>>{
+		typedef typename NatNatToNat<Nat<
+			typename ReverseBits<Nat<Bits...>>::value,
+			Bit1
+		>>::value value;
 	};
 }
 
@@ -19,6 +89,8 @@ namespace Helpers_{
 template<class Nat> struct AddOne;
 template<class Nat> struct SubtractOne;
 template<class Nat1, class Nat2> struct Equal;
+template<class Nat1, class Nat2> struct GreaterThan;
+template<class Nat1, class Nat2> struct LessThan;
 
 template<> struct AddOne<Nat<>>{
 	typedef Nat<True> value;
@@ -66,6 +138,51 @@ struct Equal<Nat<False,Bits1...>,Nat<>>{
 template<class... Bits2>
 struct Equal<Nat<>,Nat<False,Bits2...>>{
 	typedef typename Equal<Nat<>,Nat<Bits2...>>::value value;
+};
+
+namespace Helpers_{
+	template<class ReversedNat1, class ReversedNat2> struct XGreaterThan;
+	template<class... Bits1, class... Bits2>
+	struct XGreaterThan<Nat<False,Bits1...>,Nat<False,Bits2...>>{
+		typedef typename XGreaterThan<Nat<Bits1...>,Nat<Bits2...>>::value value;
+	};
+	template<class... Bits1, class... Bits2>
+	struct XGreaterThan<Nat<True,Bits1...>,Nat<False,Bits2...>>{
+		typedef True value;
+	};
+	template<class... Bits1, class... Bits2>
+	struct XGreaterThan<Nat<False,Bits1...>,Nat<True,Bits2...>>{
+		typedef False value;
+	};
+	template<class... Bits1, class... Bits2>
+	struct XGreaterThan<Nat<True,Bits1...>,Nat<True,Bits2...>>{
+		typedef typename XGreaterThan<Nat<Bits1...>,Nat<Bits2...>>::value value;
+	};
+	/* // Further Ternary optimizations?
+	template<class Input1, class Input2> struct GreaterThan_V{
+		typedef typename GreaterThan<typename Input1::value, typename Input2::value>::value value;
+	};
+	*/
+}
+
+// Nat1 > Nat2
+template<class Nat1, class Nat2> struct GreaterThan{
+	typedef typename Ternary<typename Helpers_::CheckEqualLength<Nat1,Nat2>::value,
+		Helpers_::XGreaterThan<
+			typename Helpers_::ReverseBits<Nat1>::value,
+			typename Helpers_::ReverseBits<Nat2>::value
+		>,
+		Helpers_::CheckLongerThan<
+			typename Helpers_::StripTrailingFalses<Nat1>::value,
+			typename Helpers_::StripTrailingFalses<Nat2>::value
+	>>::value::value value;
+};
+// Nat1 < Nat2
+template<class Nat1, class Nat2> struct LessThan{
+	typedef typename Not<typename Or<
+		typename GreaterThan<Nat1,Nat2>::value,
+		typename Equal<Nat1,Nat2>::value
+	>::value>::value value;
 };
 
 /* Bitwise */
