@@ -1,0 +1,95 @@
+#ifndef TEMPLATE_INTEGERNUMBERS_
+#define TEMPLATE_INTEGERNUMBERS_
+#include "../Logic.cpp" // Must be up here, otherwise namespaced to Natural::
+namespace Natural{
+	#include "Natural.cpp"
+}
+// See Turing.cpp
+#define Helpers_ IntegerArithmeticTNUDEFBGPATPQBUUYSLRREVZSFYCD5XI
+
+template<class Sign, class Natural> struct Int; // Sign=True -> Negative, Sign=False -> Positive; Natural = Natural::Nat<...>
+
+template<class Int> struct AddOne;
+template<class Int> struct SubtractOne;
+template<class Int> struct Negate;
+template<class Int1, class Int2> struct Equal;
+template<class Int1, class Int2> struct GreaterThan;
+template<class Int1, class Int2> struct LessThan;
+/* // Later idk
+template<class Int1, class Int2> struct BitwiseAnd;
+template<class Int1, class Int2> struct BitwiseOr;
+template<class Int1> struct BitwiseNot;
+template<class Int1, class Int2> struct BitwiseXor;
+template<class Int, class ToShift> struct LeftShift;
+template<class Int, class ToShift> struct RightShift;
+*/
+template<class Int1, class Int2> struct Add;
+template<class Int1, class Int2> struct Multiply;
+template<class Minuend, class Subtrahend> struct Subtract;
+template<class Numerator, class Denominator> struct Divide;
+
+/* Basics */
+
+template<class Sign, class Nat>
+struct AddOne<Int<Sign,Nat>>{
+	typedef typename Ternary<Sign,
+		Ternary<typename Natural::Equal<Nat,Natural::Nat<>>::value, // Might be zero
+			Int<False,Natural::Nat<True>>, // When zero, just make one
+			Int<True,typename Natural::SubtractOne<Nat>::value> // else get closer to zero
+		>,
+		Identity<Int<False,typename Natural::AddOne<Nat>::value>>
+	>::value::value value;
+};
+template<class Sign, class Nat>
+struct SubtractOne<Int<Sign,Nat>>{
+	typedef typename Ternary<Sign,
+		Identity<Int<True,typename Natural::SubtractOne<Nat>::value>>,
+		Ternary<typename Natural::Equal<Nat,Natural::Nat<>>::value, // Might be zero
+			Int<True,Natural::Nat<True>>,
+			Int<False,typename Natural::AddOne<Nat>::value>
+		>
+	>::value::value value;
+};
+template<class Sign, class Nat>
+struct Negate<Int<Sign,Nat>>{
+	typedef Int<typename Not<Sign>::value,Nat> value;
+};
+template<class Sign1, class Nat1, class Sign2, class Nat2>
+struct Equal<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
+	typedef typename Ternary<typename Xor<Sign1,Sign2>::value, // Are signs different?
+		Ternary<typename Natural::Equal<Nat1,Natural::Nat<>>::value, // Are they zero?
+			Natural::Equal<Nat2,Natural::Nat<>>,
+			Identity<False>
+		>,
+		Identity<Identity<Natural::Equal<Nat1,Nat2>>>
+		>::value::value::value value;
+};
+template<class Sign1, class Nat1, class Sign2, class Nat2>
+struct GreaterThan<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
+	typedef typename Ternary<typename Xor<Sign1,Sign2>::value, // Are signs different?
+		Ternary<typename Natural::Equal<Nat1,Natural::Nat<>>::value, // Is Int1 zero?
+			Ternary<Sign2,
+				Identity<False>, // No negative is greater than zero. Not even -0
+				Natural::GreaterThan<Nat2,Natural::Nat<>> // Int1 is zero, Int2 > Int1 -> Nat2 > 0
+			>,
+			// Int1 is not zero, and signs are different.
+			//Ternary<Sign1,
+			//	/* Negative case. Since Int1 is not zero, and Int2 is positive, always*/ False,
+			//	/* Positive case. Since Int1 is not zero, and Int2 is negative, always*/ True
+			//>
+			// Collapses to
+			Identity<Sign2> // because last was Not<Sign1> and Sign2==Not<Sign1>
+		>,
+		Identity<Ternary<Sign1, // Same as Sign2
+			Natural::GreaterThan<Nat2,Nat1>, // (-x)>(-y) -> y>x
+			Natural::GreaterThan<Nat1,Nat2> // x>y -> x>y
+		>>
+	>::value::value::value::value value; // That's a lot of value from one function!
+};
+template<class Int1, class Int2> struct LessThan{
+	// I am not going through that again.
+	typedef typename GreaterThan<Int2,Int1>::value value;
+};
+
+#undef Helpers_
+#endif
