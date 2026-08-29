@@ -1,6 +1,6 @@
 #ifndef TEMPLATE_INTEGERNUMBERS_
 #define TEMPLATE_INTEGERNUMBERS_
-#include "../Logic.cpp" // Must be up here, otherwise namespaced to Natural::
+#include "../Logic.cpp" // Must be up here, otherwise Natural:: adopts it
 namespace Natural{
 	#include "Natural.cpp"
 }
@@ -89,6 +89,43 @@ struct GreaterThan<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
 template<class Int1, class Int2> struct LessThan{
 	// I am not going through that again.
 	typedef typename GreaterThan<Int2,Int1>::value value;
+};
+
+
+// Trivial!
+template<class Sign1, class Nat1, class Sign2, class Nat2>
+struct Multiply<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
+	typedef Int<typename Xor<Sign1,Sign2>::value,typename Natural::Multiply<Nat1,Nat2>::value> value;
+};
+template<class Sign1, class Nat1, class Sign2, class Nat2>
+struct Divide<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
+	typedef Int<typename Xor<Sign1,Sign2>::value,typename Natural::Divide<Nat1,Nat2>::value> value;
+};
+
+template<class Sign1, class Nat1, class Sign2, class Nat2>
+struct Add<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
+	typedef typename Ternary<typename Xor<Sign1,Sign2>::value,
+		Ternary<Sign1,
+			// Int1 is negative, Int2 is positive
+			Ternary<typename Natural::GreaterThan<Nat1,Nat2>::value,
+				// Int1 is more negative than Int2 is positive
+				Int<True,typename Natural::Subtract<Nat1,Nat2>::value>,
+				// Int2 is more positive than Int1 is negative
+				Int<False,typename Natural::Subtract<Nat2,Nat1>::value>
+			>,
+			// Int1 is positive, Int2 is negative
+			Ternary<typename Natural::GreaterThan<Nat1,Nat2>::value,
+				// Int1 is more positive than Int2 is negative
+				Int<False,typename Natural::Subtract<Nat1,Nat2>::value>,
+				// Int2 is more negative than Int1 is positive
+				Int<True,typename Natural::Subtract<Nat2,Nat1>::value>
+			>,
+		>,
+		Identity<Int<Sign1,typename Natural::Add<Nat1,Nat2>::value>>
+	>::value::value value;
+};
+template<class Int1, class Int2> struct Subtract{
+	typedef typename Add<Int1,typename Negate<Int2>::value>::value value;
 };
 
 #undef Helpers_
