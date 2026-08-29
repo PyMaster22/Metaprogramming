@@ -377,6 +377,17 @@ template<class Nat1, class Nat2> struct Multiply{
 
 namespace Helpers_{
 	template<class Nat1, class Nat2> struct XSubtract;
+	template<> struct XSubtract<Nat<>,Nat<>>{
+		typedef Nat<> value;
+	};
+	template<class Nat1>
+	struct XSubtract<Nat1,Nat<>>{
+		typedef Nat1 value;
+	};
+	template<class Nat2>
+	struct XSubtract<Nat<>,Nat2>{
+		typedef Nat<> value;
+	};
 	template<class... Bits1, class... Bits2>
 	struct XSubtract<Nat<False,Bits1...>,Nat<False,Bits2...>>{
 		typedef typename NatNatToNat<Nat<
@@ -464,7 +475,7 @@ namespace Helpers_{
 			typename LeftShift<R,Nat<True>>::value,
 			typename BitwiseAnd<typename RightShift<N,i>::value,Nat<True>>::value
 		>::value NewR;
-		typedef typename Not<typename LessThan<NewR,Q>::value>::value ToQuotient;
+		typedef typename Not<typename LessThan<NewR,D>::value>::value ToQuotient;
 		typedef typename Subtract<NewR,
 			typename Ternary<ToQuotient,D,Nat<>>::value
 		>::value FinalR;
@@ -476,7 +487,7 @@ namespace Helpers_{
 	}; 
 }
 template<class Nat1, class Nat2> struct Divide{
-	typedef Helpers_::XDivide<Nat1,Nat2,Nat<>,Nat<>,typename Helpers_::BitLength<Nat1>::value>::value value;
+	typedef typename Helpers_::XDivide<Nat1,Nat2,Nat<>,Nat<>,typename Helpers_::BitLength<Nat1>::value>::value value;
 };
 
 
