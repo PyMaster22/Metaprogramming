@@ -7,12 +7,31 @@
 // Little endian because arbitrary precision and limitations of specialization
 template<class... Bits> struct Nat;
 
+template<class Nat> struct AddOne;
+template<class Nat> struct SubtractOne;
+template<class Nat1, class Nat2> struct Equal;
+template<class Nat1, class Nat2> struct GreaterThan;
+template<class Nat1, class Nat2> struct LessThan;
+
+template<class Nat1, class Nat2> struct BitwiseAnd;
+template<class Nat1, class Nat2> struct BitwiseOr;
+template<class Nat1> struct BitwiseNot;
+template<class Nat1, class Nat2> struct BitwiseXor;
+template<class Nat, class ToShift> struct LeftShift;
+template<class Nat, class ToShift> struct RightShift;
+
+template<class Nat1, class Nat2> struct Add;
+template<class Nat1, class Nat2> struct Multiply;
+template<class Minuend, class Subtrahend> struct Subtract;
+template<class Numerator, class Denominator> struct Divide;
+
 namespace Helpers_{
 	template<class Nat> struct NatNatToNat;
 	template<class Nat> struct StripTrailingFalses;
 	template<class Nat1, class Nat2> struct CheckEqualLength;
 	template<class Nat1, class Nat2> struct CheckLongerThan;
 	template<class Nat1> struct ReverseBits;
+	template<class Nat1> struct BitLength;
 
 	template<class Bit, class... NatBits>
 	struct NatNatToNat<Nat<Bit,Nat<NatBits...>>>{
@@ -83,14 +102,17 @@ namespace Helpers_{
 			Bit1
 		>>::value value;
 	};
+
+	template<> struct BitLength<Nat<>>{
+		typedef Nat<> value;
+	};
+	template<class Bit1, class... Bits>
+	struct BitLength<Nat<Bit1,Bits...>>{
+		typedef typename AddOne<typename BitLength<Nat<Bits...>>::value>::value value;
+	};
 }
 
 /* Basics */
-template<class Nat> struct AddOne;
-template<class Nat> struct SubtractOne;
-template<class Nat1, class Nat2> struct Equal;
-template<class Nat1, class Nat2> struct GreaterThan;
-template<class Nat1, class Nat2> struct LessThan;
 
 template<> struct AddOne<Nat<>>{
 	typedef Nat<True> value;
@@ -142,6 +164,18 @@ struct Equal<Nat<>,Nat<False,Bits2...>>{
 
 namespace Helpers_{
 	template<class ReversedNat1, class ReversedNat2> struct XGreaterThan;
+	template<>
+	struct XGreaterThan<Nat<>,Nat<>>{
+		typedef False value;
+	};
+	template<class Nat1>
+	struct XGreaterThan<Nat1,Nat<>>{
+		typedef typename Not<typename Equal<Nat1,Nat<>>::value>::value value;
+	};
+	template<class Nat2>
+	struct XGreaterThan<Nat<>,Nat2>{
+		typedef typename Not<typename Equal<Nat2,Nat<>>::value>::value value;
+	};
 	template<class... Bits1, class... Bits2>
 	struct XGreaterThan<Nat<False,Bits1...>,Nat<False,Bits2...>>{
 		typedef typename XGreaterThan<Nat<Bits1...>,Nat<Bits2...>>::value value;
@@ -186,12 +220,6 @@ template<class Nat1, class Nat2> struct LessThan{
 };
 
 /* Bitwise */
-template<class Nat1, class Nat2> struct BitwiseAnd;
-template<class Nat1, class Nat2> struct BitwiseOr;
-template<class Nat1> struct BitwiseNot;
-template<class Nat1, class Nat2> struct BitwiseXor;
-template<class Nat, class ToShift> struct LeftShift;
-template<class Nat, class ToShift> struct RightShift;
 
 template<class Nat1>
 struct BitwiseAnd<Nat1,Nat<>>{
@@ -286,11 +314,6 @@ struct RightShift<Nat<Bit1,Bits...>,ToShift>{
 
 
 /* Standard arithmetic */
-template<class Nat1, class Nat2> struct Add;
-template<class Nat1, class Nat2> struct Multiply;
-template<class Minuend, class Subtrahend> struct Subtract;
-template<class Numerator, class Denominator> struct Divide;
-
 
 template<> struct Add<Nat<>,Nat<>>{
 	typedef Nat<> value;
@@ -334,9 +357,9 @@ namespace Helpers_{
 	template<class Nat1, class Nat2, class Accumulator> struct XMultiply;
 	template<class... Bits1, class Nat2, class... ABits>
 	struct XMultiply<Nat<False,Bits1...>,Nat2,Nat<ABits...>>{
-		typedef typename ::Ternary<typename ::Equal<Nat<Bits1...>,Nat<>>::value,
-			::Identity<Nat<ABits...>>,
-			XMultiply<typename ::SubtractOne<Nat<False,Bits1...>>::value,Nat2,Nat<False,ABits...>>
+		typedef typename Ternary<typename Equal<Nat<Bits1...>,Nat<>>::value,
+			Identity<Nat<ABits...>>,
+			XMultiply<typename SubtractOne<Nat<False,Bits1...>>::value,Nat2,Nat<False,ABits...>>
 		>::value::value value;
 	};
 	template<class... Bits1, class Nat2, class... ABits>
@@ -344,7 +367,7 @@ namespace Helpers_{
 		typedef typename XMultiply<
 			Nat<False,Bits1...>,
 			Nat2,
-			typename ::Add<Nat2,Nat<ABits...>>::value
+			typename Add<Nat2,Nat<ABits...>>::value
 		>::value value;
 	};
 }
@@ -370,7 +393,7 @@ namespace Helpers_{
 	};
 	template<class... Bits1, class... Bits2>
 	struct XSubtract<Nat<False,Bits1...>,Nat<True,Bits2...>>{
-		typedef typename ::SubtractOne<typename NatNatToNat<Nat<
+		typedef typename SubtractOne<typename NatNatToNat<Nat<
 			False,
 			typename XSubtract<Nat<Bits1...>,Nat<Bits2...>>::value
 		>>::value>::value value;
@@ -404,26 +427,47 @@ namespace Helpers_{
 	  end
 	end
 	*/
-	template<class Numerator, class Denominator, class Quotient, class Remainder> struct XDivide;
-	template<class NBit1, class... NBits, class D, class... QBits, class... RBits>
-	struct XDivide<Nat<NBit1,NBits...>,D,Nat<QBits...>,Nat<RBits...>>{
-		typedef Nat<NBit1,RBits...> R;
-		typedef typename XDivide<
-			Nat<NBits...>,D,
-			typename ::Ternary<typename ::Not<typename ::LessThan<R,D>>::value,
-				::Subtract<R,D>,
-				::Identity<R>
-			>::value::value,
-			Nat<QBits...,typename ::Not<typename ::LessThan<R,D>>::value>
-		>::value value;
-	};
-	template<class D, class Q, class R>
-	struct XDivide<Nat<>,D,Q,R>{
-		typedef Q value;
-	};
+	/* Translation to python
+	def Divide(N,D):
+		Q=0
+		R=0
+		for i in range(len(bin(N)[2:]),-1,-1):
+			R=(R<<1)+((N>>i)&1)
+			if(R>=D):
+				R=R-D
+				Q=Q|(1<<i)
+		return(Q,R)
+	*/
+	template<class Numerator, class Denominator, class Quotient, class Remainder, class i> struct XDivide;
+	template<class N, class D, class Q, class R, class i>
+	struct XDivide{
+		typedef BitwiseOr<
+			typename LeftShift<R_,Nat<True>>::value,
+			typename BitwiseAnd<
+				typename RightShift<N,i>::value,
+				Nat<True>
+			>::value
+		>::value R;
+
+		typedef typename Ternary<typename Equal<i,Nat<>>::value,
+			Identity<Q>,
+			XDivide<
+				typename RightShift<N,Nat<True>>::value,D,
+				typename Ternary<typename LessThan<R,D>::value,
+					Identity<R>,
+					Subtract<R,D>
+				>::value::value,
+				typename Ternary<typename LessThan<R,D>::value,
+					Identity<Q>,
+					BitwiseOr<Q,typename LeftShift<Nat<True>,i>::value>
+				>::value::value,
+				typename SubtractOne<i>::value
+			>
+		>::value::value value;
+	}; 
 }
 template<class Nat1, class Nat2> struct Divide{
-	typedef Helpers_::XDivide<Nat1,Nat2,Nat<>,Nat<>>::value value;
+	typedef Helpers_::XDivide<Nat1,Nat2,Nat<>,Nat<>,typename Helpers_::BitLength<Nat1>::value>::value value;
 };
 
 
