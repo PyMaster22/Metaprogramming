@@ -428,46 +428,6 @@ struct Subtract{
 };
 
 namespace Helpers_{
-	/* From wikipedia
-	Q := 0                  -- Initialize quotient and remainder to zero
-	R := 0                     
-	for i := n − 1 .. 0 do  -- Where n is number of bits in N
-	  R := R << 1           -- Left-shift R by 1 bit
-	  R(0) := N(i)          -- Set the least-significant bit of R equal to bit i of the numerator
-	  if R ≥ D then
-	    R := R − D
-	    Q(i) := 1
-	  end
-	end
-	*/
-	/* Translation to python
-	def Divide(N,D):
-		Q=0
-		R=0
-		for i in range(len(bin(N)[2:]),-1,-1):
-			R=(R<<1)+((N>>i)&1)
-			if(R>=D):
-				R=R-D
-				Q=Q|(1<<i)
-		return(Q,R)
-	*/
-	/* Pure recursive
-	def Divide(N,D,Q=0,R=0,i=None):
-		if(i==None):i=len(bin(N)[2:])
-		if(i==-1):return(Q,R)
-		new_R = (R << 1) + ((N >> i) & 1)
-		subtract = new_R >= D
-		new_R -= D * subtract
-		new_Q = Q | (subtract << i)
-		return Divide(N, D, new_Q, new_R, i - 1)
-
-		#return Divide(
-		#	N,D,
-		#	Q | ((((R << 1) + ((N >> i) & 1)) >= D) << i),
-		#	((R << 1) + ((N >> i) & 1))-D * (((R << 1) + ((N >> i) & 1)) >= D),
-		#	i - 1
-		#)
-	*/
 	template<class Numerator, class Denominator, class Quotient, class Remainder, class i> struct XDivide;
 	template<class N, class D, class Q, class R, class i>
 	struct XDivide{
