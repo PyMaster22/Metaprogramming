@@ -15,41 +15,32 @@ namespace Helpers_{
 }
 
 
-template<class String, template<class Symbol> class Productions, class HaltSymbol> struct TwoTag;
-// Default; 2+ symbols and not halted by first symbol
-template<class Symbol1, class Symbol2, class... Symbols, template<class> class Productions, class HaltSymbol>
-struct TwoTag<String<Symbol1,Symbol2,Symbols...>,Productions,HaltSymbol>{
+template<class String, template<class Symbol> class Productions> struct TwoTag;
+// Default; 2+ symbols
+template<class Symbol1, class Symbol2, class... Symbols, template<class> class Productions>
+struct TwoTag<String<Symbol1,Symbol2,Symbols...>,Productions>{
 	typedef String<Symbol1,Symbol2,Symbols...> Out;
 	typedef TwoTag<
 		typename Helpers_::MergeStrings<String<Symbols...>,typename Productions<Symbol1>::Produces>,
-		Productions,HaltSymbol
-	> Next;
-};
-// Halted by first symbol AND still has 2+ symbols
-template<class Symbol2, class... Symbols, template<class> class Productions, class HaltSymbol>
-struct TwoTag<String<HaltSymbol,Symbol2,Symbols...>,Productions,HaltSymbol>{
-	typedef String<HaltSymbol,Symbol2,Symbols...> Out;
-	// Next is same because halted
-	typedef TwoTag<
-		Out,Productions,HaltSymbol
+		Productions
 	> Next;
 };
 // Halt by only having 1 symbol
-template<class Symbol1, template<class> class Productions, class HaltSymbol>
-struct TwoTag<String<Symbol1>,Productions,HaltSymbol>{
+template<class Symbol1, template<class> class Productions>
+struct TwoTag<String<Symbol1>,Productions>{
 	typedef String<Symbol1> Out;
 	// Next is same because halted
 	typedef TwoTag<
-		Out,Productions,HaltSymbol
+		Out,Productions
 	> Next;
 };
 // Halt by no symbols
-template<template<class> class Productions, class HaltSymbol>
-struct TwoTag<String<>,Productions,HaltSymbol>{
+template<template<class> class Productions>
+struct TwoTag<String<>,Productions>{
 	typedef String<> Out;
 	// Next is same because halted
 	typedef TwoTag<
-		Out,Productions,HaltSymbol
+		Out,Productions
 	> Next;
 };
 
