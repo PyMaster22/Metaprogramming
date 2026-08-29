@@ -288,7 +288,8 @@ struct RightShift<Nat<Bit1,Bits...>,ToShift>{
 /* Standard arithmetic */
 template<class Nat1, class Nat2> struct Add;
 template<class Nat1, class Nat2> struct Multiply;
-template<class Nat1, class Nat2> struct Subtract;
+template<class Minuend, class Subtrahend> struct Subtract;
+template<class Numerator, class Denominator> struct Divide;
 
 
 template<> struct Add<Nat<>,Nat<>>{
@@ -388,6 +389,41 @@ struct Subtract{
 		Helpers_::XSubtract<Nat1,Nat2>,
 		Identity<Nat<>>
 	>::value::value value;
+};
+
+namespace Helpers_{
+	/* From wikipedia
+	Q := 0                  -- Initialize quotient and remainder to zero
+	R := 0                     
+	for i := n − 1 .. 0 do  -- Where n is number of bits in N
+	  R := R << 1           -- Left-shift R by 1 bit
+	  R(0) := N(i)          -- Set the least-significant bit of R equal to bit i of the numerator
+	  if R ≥ D then
+	    R := R − D
+	    Q(i) := 1
+	  end
+	end
+	*/
+	template<class Numerator, class Denominator, class Quotient, class Remainder> struct XDivide;
+	template<class NBit1, class... NBits, class D, class... QBits, class... RBits>
+	struct XDivide<Nat<NBit1,NBits...>,D,Nat<QBits...>,Nat<RBits...>>{
+		typedef Nat<NBit1,RBits...> R;
+		typedef typename XDivide<
+			Nat<NBits...>,D,
+			typename ::Ternary<typename ::Not<typename ::LessThan<R,D>>::value,
+				::Subtract<R,D>,
+				::Identity<R>
+			>::value::value,
+			Nat<QBits...,typename ::Not<typename ::LessThan<R,D>>::value>
+		>::value value;
+	};
+	template<class D, class Q, class R>
+	struct XDivide<Nat<>,D,Q,R>{
+		typedef Q value;
+	};
+}
+template<class Nat1, class Nat2> struct Divide{
+	typedef Helpers_::XDivide<Nat1,Nat2,Nat<>,Nat<>>::value value;
 };
 
 
