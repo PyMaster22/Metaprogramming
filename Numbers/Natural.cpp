@@ -242,11 +242,11 @@ struct BitwiseAnd<Nat<Bit1,Bits1...>,Nat<Bit2,Bits2...>>{
 
 template<class Nat1>
 struct BitwiseOr<Nat1,Nat<>>{
-	typedef Nat<> value;
+	typedef Nat1 value;
 };
 template<class Nat2>
 struct BitwiseOr<Nat<>,Nat2>{
-	typedef Nat<> value;
+	typedef Nat2 value;
 };
 template<> struct BitwiseOr<Nat<>,Nat<>>{
 	typedef Nat<> value;
@@ -409,9 +409,11 @@ namespace Helpers_{
 template<class Nat1, class Nat2>
 struct Subtract{
 	typedef typename Ternary<typename GreaterThan<Nat1,Nat2>::value,
-		Helpers_::XSubtract<Nat1,Nat2>,
-		Identity<Nat<>>
-	>::value::value value;
+		Ternary<typename Equal<Nat2,Nat<>>::value,
+			Identity<Nat1>,
+			Helpers_::XSubtract<Nat1,Nat2>
+		>,Identity<Identity<Nat<>>>
+	>::value::value::value value;
 };
 
 namespace Helpers_{
@@ -438,31 +440,38 @@ namespace Helpers_{
 				Q=Q|(1<<i)
 		return(Q,R)
 	*/
+	/* Pure recursive
+	def Divide(N,D,Q=0,R=0,i=None):
+		if(i==None):i=len(bin(N)[2:])
+		if(i==-1):return(Q,R)
+		new_R = (R << 1) + ((N >> i) & 1)
+		subtract = new_R >= D
+		new_R -= D * subtract
+		new_Q = Q | (subtract << i)
+		return Divide(N, D, new_Q, new_R, i - 1)
+
+		#return Divide(
+		#	N,D,
+		#	Q | ((((R << 1) + ((N >> i) & 1)) >= D) << i),
+		#	((R << 1) + ((N >> i) & 1))-D * (((R << 1) + ((N >> i) & 1)) >= D),
+		#	i - 1
+		#)
+	*/
 	template<class Numerator, class Denominator, class Quotient, class Remainder, class i> struct XDivide;
 	template<class N, class D, class Q, class R, class i>
 	struct XDivide{
-		typedef BitwiseOr<
-			typename LeftShift<R_,Nat<True>>::value,
-			typename BitwiseAnd<
-				typename RightShift<N,i>::value,
-				Nat<True>
-			>::value
-		>::value R;
-
+		typedef typename Add<
+			typename LeftShift<R,Nat<True>>::value,
+			typename BitwiseAnd<typename RightShift<N,i>::value,Nat<True>>::value
+		>::value NewR;
+		typedef typename Not<typename LessThan<NewR,Q>::value>::value ToQuotient;
+		typedef typename Subtract<NewR,
+			typename Ternary<ToQuotient,D,Nat<>>::value
+		>::value FinalR;
+		typedef typename BitwiseOr<Q,typename LeftShift<Nat<ToQuotient>,i>::value>::value FinalQ;
 		typedef typename Ternary<typename Equal<i,Nat<>>::value,
-			Identity<Q>,
-			XDivide<
-				typename RightShift<N,Nat<True>>::value,D,
-				typename Ternary<typename LessThan<R,D>::value,
-					Identity<R>,
-					Subtract<R,D>
-				>::value::value,
-				typename Ternary<typename LessThan<R,D>::value,
-					Identity<Q>,
-					BitwiseOr<Q,typename LeftShift<Nat<True>,i>::value>
-				>::value::value,
-				typename SubtractOne<i>::value
-			>
+			Identity<FinalQ>,
+			XDivide<N,D,FinalQ,FinalR,typename SubtractOne<i>::value>
 		>::value::value value;
 	}; 
 }
