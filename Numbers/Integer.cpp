@@ -43,10 +43,10 @@ struct AddOne<Int<Sign,Nat>>{
 template<class Sign, class Nat>
 struct SubtractOne<Int<Sign,Nat>>{
 	typedef typename Ternary<Sign,
-		Identity<Int<True,typename Natural::SubtractOne<Nat>::value>>,
+		Identity<Int<True,typename Natural::AddOne<Nat>::value>>,
 		Ternary<typename Natural::Equal<Nat,Natural::Nat<>>::value, // Might be zero
 			Int<True,Natural::Nat<True>>,
-			Int<False,typename Natural::AddOne<Nat>::value>
+			Int<False,typename Natural::SubtractOne<Nat>::value>
 		>
 	>::value::value value;
 };
@@ -61,7 +61,7 @@ struct Equal<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
 			Natural::Equal<Nat2,Natural::Nat<>>,
 			Identity<False>
 		>,
-		Identity<Identity<Natural::Equal<Nat1,Nat2>>>
+		Identity<Natural::Equal<Nat1,Nat2>>
 		>::value::value::value value;
 };
 template<class Sign1, class Nat1, class Sign2, class Nat2>
@@ -69,8 +69,8 @@ struct GreaterThan<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
 	typedef typename Ternary<typename Xor<Sign1,Sign2>::value, // Are signs different?
 		Ternary<typename Natural::Equal<Nat1,Natural::Nat<>>::value, // Is Int1 zero?
 			Ternary<Sign2,
-				Identity<False>, // No negative is greater than zero. Not even -0
-				Natural::GreaterThan<Nat2,Natural::Nat<>> // Int1 is zero, Int2 > Int1 -> Nat2 > 0
+				Natural::GreaterThan<Nat2,Natural::Nat<>>, // Int1 is zero, Int2 > Int1 -> Nat2 > 0
+				Identity<False> // No negative is greater than zero. Not even -0
 			>,
 			// Int1 is not zero, and signs are different.
 			//Ternary<Sign1,
@@ -78,7 +78,7 @@ struct GreaterThan<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
 			//	/* Positive case. Since Int1 is not zero, and Int2 is negative, always*/ True
 			//>
 			// Collapses to
-			Identity<Sign2> // because last was Not<Sign1> and Sign2==Not<Sign1>
+			Identity<Identity<Sign2>> // because last was Not<Sign1> and Sign2==Not<Sign1>
 		>,
 		Identity<Ternary<Sign1, // Same as Sign2
 			Natural::GreaterThan<Nat2,Nat1>, // (-x)>(-y) -> y>x
@@ -119,10 +119,10 @@ struct Add<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
 				Int<False,typename Natural::Subtract<Nat1,Nat2>::value>,
 				// Int2 is more negative than Int1 is positive
 				Int<True,typename Natural::Subtract<Nat2,Nat1>::value>
-			>,
+			>
 		>,
-		Identity<Int<Sign1,typename Natural::Add<Nat1,Nat2>::value>>
-	>::value::value value;
+		Identity<Identity<Int<Sign1,typename Natural::Add<Nat1,Nat2>::value>>>
+	>::value::value::value value;
 };
 template<class Int1, class Int2> struct Subtract{
 	typedef typename Add<Int1,typename Negate<Int2>::value>::value value;
