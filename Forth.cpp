@@ -41,6 +41,21 @@ struct UNTIL{};
 
 template<class... Items> struct Stack;
 template<class... InstructionIndexes> struct LoopStack;
+template<class Depth, class IFOrELSE> struct DepthIndexedIf; // needed cause nested loops
+template<class... DepthIndexedIfsElses> struct IfStack;
+
+namespace Helpers_{
+	template<class IfStack, class IFOrELSE> struct AppendDeeperIf;
+
+	template<class Depth, class IFOrELSE, class... Rest, class NewIFOrELSE>
+	struct AppendDeeperIf<IfStack<DepthIndexedIf<Depth,IFOrELSE>,Rest...>,NewIFOrELSE>{
+		typedef IfStack<DepthIndexedIf<typename AddOne<Depth>::value,NewIFOrELSE>,DepthIndexedIf<Depth,IFOrELSE>,Rest...> value;
+	};
+	template<class NewIFOrELSE>
+	struct AppendDeeperIf<IfStack<>,NewIFOrELSE>{
+		typedef IfStack<DepthIndexedIf<Int<False,Natural::Nat<>>,NewIFOrELSE>>
+	};
+}
 
 template<class Index, class Word> struct IndexedWord; // needed cause loops
 template<class... IndexedWords> struct Program;
@@ -55,111 +70,37 @@ struct InstructionLookup<Index,Program<TopIndexedWord,Rest...>>{
 	typedef typename InstructionLookup<Index,Program<Rest...>>::value value;
 };
 
-template<class Program, class InstructionPointer, class Stack, class LoopStack> struct ForthMachineConfiguration;
+template<class Program, class InstructionPointer, class Stack, class LoopStack, class IfStack> struct ForthMachineConfiguration;
 namespace Helpers_{
-	template<class Program, class Pointer, class Word, class Stack, class LoopStack> struct ForthMachineStepper;
+	template<class Program, class Pointer, class Word, class Stack, class LoopStack, class IfStack> struct ForthMachineStepper;
 }
-template<class Program, class Pointer, class Stack, class LoopStack> struct ForthMachineConfiguration{
+template<class Program, class Pointer, class Stack, class LoopStack, class IfStack> struct ForthMachineConfiguration{
 	typedef typename InstructionLookup<Pointer,Program>::value Word;
 	typedef typename Helpers_::ForthMachineStepper<
 		Program,Pointer,
 		Word,
-		Stack,LoopStack
+		Stack,LoopStack,IfStack
 	>::Next Next;
 };
 
 namespace Helpers_{
 	/* Stack manipulation */
-	template<class Program, class Pointer, class StackItem1, class... StackItems, class LoopStack>
-	struct ForthMachineStepper<Program,Pointer,DUP,Stack<StackItem1,StackItems...>,LoopStack>{
-		typedef ForthMachineConfiguration<
-			Program,Pointer,
-			Stack<StackItem1,StackItem1,StackItems...>,
-			LoopStack
-		> Next;
-	};
-	template<class Program, class Pointer, class StackItem1, class StackItem2, class... StackItems, class LoopStack>
-	struct ForthMachineStepper<Program,Pointer,SWAP,Stack<StackItem1,StackItem2,StackItems...>,LoopStack>{
-		typedef ForthMachineConfiguration<
-			Program,Pointer,
-			Stack<StackItem2,StackItem1,StackItems...>,
-			LoopStack
-		> Next;
-	};
-	template<class Program, class Pointer, class StackItem1, class... StackItems, class LoopStack>
-	struct ForthMachineStepper<Program,Pointer,DROP,Stack<StackItem1,StackItems...>,LoopStack>{
+
+	/* Arithmetic */
+	
+	/* Comparison */
+
+	/* Conditional */
+	template<class Program, class Pointer, class StackItem1, class... StackItems, class LoopStack, class... IfStackItems>
+	struct ForthMachineStepper<Program,Pointer,IF,Stack<StackItem1,StackItems...>,LoopStack,IfStack<IfStackItems...>>{
 		typedef ForthMachineConfiguration<
 			Program,Pointer,
 			Stack<StackItems...>,
-			LoopStack
-		> Next;
-	};
-	template<class Program, class Pointer, class StackItem1, class StackItem2, class... StackItems, class LoopStack>
-	struct ForthMachineStepper<Program,Pointer,OVER,Stack<StackItem1,StackItem2,StackItems...>,LoopStack>{
-		typedef ForthMachineConfiguration<
-			Program,Pointer,
-			Stack<StackItem1,StackItem2,StackItem1,StackItems...>,
-			LoopStack
-		> Next;
-	};
-	template<class Program, class Pointer, class StackItem1, class StackItem2, class StackItem3, class... StackItems, class LoopStack>
-	struct ForthMachineStepper<Program,Pointer,ROT,Stack<StackItem1,StackItem2,StackItem3,StackItems...>,LoopStack>{
-		typedef ForthMachineConfiguration<
-			Program,Pointer,
-			Stack<StackItem3,StackItem1,StackItem2,StackItems...>,
-			LoopStack
-		> Next;
-	};
-
-	/* Arithmetic */
-	template<class Program, class Pointer, class StackItem1, class StackItem2, class... StackItems, class LoopStack>
-	struct ForthMachineStepper<Program,Pointer,ADD,Stack<StackItem1,StackItem2,StackItems...>,LoopStack>{
-		typedef ForthMachineConfiguration<
-			Program,Pointer,
-			Stack<typename Add<StackItem1,StackItem2>::value,StackItems...>,
-			LoopStack
-		> Next;
-	};
-	template<class Program, class Pointer, class StackItem1, class StackItem2, class... StackItems, class LoopStack>
-	struct ForthMachineStepper<Program,Pointer,SUB,Stack<StackItem1,StackItem2,StackItems...>,LoopStack>{
-		typedef ForthMachineConfiguration<
-			Program,Pointer,
-			Stack<typename Subtract<StackItem1,StackItem2>::value,StackItems...>,
-			LoopStack
-		> Next;
-	};
-	template<class Program, class Pointer, class StackItem1, class StackItem2, class... StackItems, class LoopStack>
-	struct ForthMachineStepper<Program,Pointer,MUL,Stack<StackItem1,StackItem2,StackItems...>,LoopStack>{
-		typedef ForthMachineConfiguration<
-			Program,Pointer,
-			Stack<typename Multiply<StackItem1,StackItem2>::value,StackItems...>,
-			LoopStack
-		> Next;
-	};
-	template<class Program, class Pointer, class StackItem1, class StackItem2, class... StackItems, class LoopStack>
-	struct ForthMachineStepper<Program,Pointer,DIV,Stack<StackItem1,StackItem2,StackItems...>,LoopStack>{
-		typedef ForthMachineConfiguration<
-			Program,Pointer,
-			Stack<typename Divide<StackItem1,StackItem2>::value,StackItems...>,
-			LoopStack
-		> Next;
-	};
-	
-	/* Comparison */
-	template<class Program, class Pointer, class StackItem1, class StackItem2, class... StackItems, class LoopStack>
-	struct ForthMachineStepper<Program,Pointer,ADD,Stack<StackItem1,StackItem2,StackItems...>,LoopStack>{
-		typedef ForthMachineConfiguration<
-			Program,Pointer,
-			Stack<typename ForthCast<typename Equal<StackItem1,StackItem2>::value>::value,StackItems...>,
-			LoopStack
-		> Next;
-	};
-
-	/* Conditional */ // Need to add IF/ELSE/Neither flag
-	template<class Program, class Pointer, class StackItem1, class... StackItems, class LoopStack>
-	struct ForthMachineStepper<Program,Pointer,IF,Stack<StackItem1,StackItems...>,LoopStack>{
-		typedef ForthMachineConfiguration<
-			
+			LoopStack,
+			IfStack<typename Ternary<typename Equal<StackItem1,Int<False,Natural::Nat<False>>>::value,
+				ELSE, // Top of stack is zero, the only falsey value.
+				IF
+			>::value,IfStackItems...>
 		> Next;
 	};
 }
