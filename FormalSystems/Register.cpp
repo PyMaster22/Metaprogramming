@@ -1,6 +1,6 @@
 #ifndef TEMPLATE_REGISTERMACHINE_
 #define TEMPLATE_REGISTERMACHINE_
-#include "Numbers/Natural.cpp"
+#include "../Numbers/Natural.cpp"
 // See Turing.cpp
 #define Helpers_ RegisterMachinePQRSE99TE1RI7WT23AFHBQWWQOKUBFKH
 
