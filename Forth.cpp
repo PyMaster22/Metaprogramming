@@ -16,95 +16,168 @@ namespace Helpers_{
 
 /* Words */
 /* Stack manipulation */
-struct DUP{};
-struct SWAP{};
-struct DROP{};
-struct OVER{};
-struct ROT{};
+struct DUP;
+struct SWAP;
+struct DROP;
+struct OVER;
+struct ROT;
 /* Arithmetic */
-struct ADD{};
-struct SUB{};
-struct MUL{};
-struct DIV{};
+struct ADD;
+struct SUB;
+struct MUL;
+struct DIV;
 /* Comparison */
-struct EQ{};
+struct EQ;
 /* New words */
-//struct DEF{};
-//struct ENDEF{};
-/* Conditions */
-struct IF{};
-struct ELSE{};
-struct THEN{};
+//struct DEF;
+//struct ENDEF;
+/* Conditional */
+// Equivalent to IF TrueProgram ELSE FalsePRogram THEN (next tokens)
+template<class TrueProgram, class FalseProgram> struct IF;
 /* Loops */
-struct BEGIN{};
-struct UNTIL{};
+// Equivalent to DUP IF BEGIN LoopProgram UNTIL ELSE DROP THEN (next tokens)
+// To get original behavior: LoopProgram,LOOP<LoopProgram>,...
+template<class LoopProgram> struct LOOP;
 
 template<class... Items> struct Stack;
-template<class... InstructionIndexes> struct LoopStack;
-template<class Depth, class IFOrELSE> struct DepthIndexedIf; // needed cause nested loops
-template<class... DepthIndexedIfsElses> struct IfStack;
 
-namespace Helpers_{
-	template<class IfStack, class IFOrELSE> struct AppendDeeperIf;
-
-	template<class Depth, class IFOrELSE, class... Rest, class NewIFOrELSE>
-	struct AppendDeeperIf<IfStack<DepthIndexedIf<Depth,IFOrELSE>,Rest...>,NewIFOrELSE>{
-		typedef IfStack<DepthIndexedIf<typename AddOne<Depth>::value,NewIFOrELSE>,DepthIndexedIf<Depth,IFOrELSE>,Rest...> value;
-	};
-	template<class NewIFOrELSE>
-	struct AppendDeeperIf<IfStack<>,NewIFOrELSE>{
-		typedef IfStack<DepthIndexedIf<Int<False,Natural::Nat<>>,NewIFOrELSE>>
-	};
-}
-
-template<class Index, class Word> struct IndexedWord; // needed cause loops
 template<class... IndexedWords> struct Program;
-template<class Index, class Program> struct InstructionLookup;
 
-template<class Index, class Word, class... Rest>
-struct InstructionLookup<Index,Program<IndexedWord<Index,Word>,Rest...>>{
-	typedef Word value;
+template<class Program, class Stack> struct ForthMachineConfiguration;
+
+
+template<class Stack>
+struct ForthMachineConfiguration<Program<>,Stack>{
+	typedef Stack Out;
+	typedef ForthMachineConfiguration<
+		Program<>,
+		Stack
+	>::Halted Halted;
 };
-template<class Index, class TopIndexedWord, class... Rest>
-struct InstructionLookup<Index,Program<TopIndexedWord,Rest...>>{
-	typedef typename InstructionLookup<Index,Program<Rest...>>::value value;
+/* Stack manipulation */
+template<class... Rest, class Stack1, class... StackRest>
+struct ForthMachineConfiguration<Program<DUP,Rest...>,Stack<Stack1,StackRest...>>{
+	typedef Stack Out;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		Stack<Stack1,Stack1,StackRest...>
+	>::Halted Halted;
+};
+template<class... Rest, class Stack1, class Stack2, class... StackRest>
+struct ForthMachineConfiguration<Program<SWAP,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
+	typedef Stack Out;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		Stack<Stack2,Stack1,StackRest...>
+	>::Halted Halted;
+};
+template<class... Rest, class Stack1, class... StackRest>
+struct ForthMachineConfiguration<Program<DROP,Rest...>,Stack<Stack1,StackRest...>>{
+	typedef Stack Out;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		Stack<StackRest...>
+	>::Halted Halted;
+};
+template<class... Rest, class Stack1, class Stack2, class... StackRest>
+struct ForthMachineConfiguration<Program<OVER,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
+	typedef Stack Out;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		Stack<Stack1,Stack2,Stack1,StackRest...>
+	>::Halted Halted;
+};
+template<class... Rest, class Stack1, class Stack2, class Stack3, class... StackRest>
+struct ForthMachineConfiguration<Program<ROT,Rest...>,Stack<Stack1,Stack2,Stack3,StackRest...>>{
+	typedef Stack Out;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		Stack<Stack3,Stack1,Stack2,StackRest...>
+	>::Halted Halted;
 };
 
-template<class Program, class InstructionPointer, class Stack, class LoopStack, class IfStack> struct ForthMachineConfiguration;
-namespace Helpers_{
-	template<class Program, class Pointer, class Word, class Stack, class LoopStack, class IfStack> struct ForthMachineStepper;
-}
-template<class Program, class Pointer, class Stack, class LoopStack, class IfStack> struct ForthMachineConfiguration{
-	typedef typename InstructionLookup<Pointer,Program>::value Word;
-	typedef typename Helpers_::ForthMachineStepper<
-		Program,Pointer,
-		Word,
-		Stack,LoopStack,IfStack
-	>::Next Next;
+/* Arithmetic */
+template<class... Rest, class Stack1, class Stack2, class... StackRest>
+struct ForthMachineConfiguration<Program<ADD,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
+	typedef Stack Out;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		Stack<
+		typename Add<Stack1,Stack2>::value
+		,StackRest...>
+	>::Halted Halted;
 };
-
-namespace Helpers_{
-	/* Stack manipulation */
-
-	/* Arithmetic */
-	
-	/* Comparison */
-
-	/* Conditional */
-	template<class Program, class Pointer, class StackItem1, class... StackItems, class LoopStack, class... IfStackItems>
-	struct ForthMachineStepper<Program,Pointer,IF,Stack<StackItem1,StackItems...>,LoopStack,IfStack<IfStackItems...>>{
-		typedef ForthMachineConfiguration<
-			Program,Pointer,
-			Stack<StackItems...>,
-			LoopStack,
-			IfStack<typename Ternary<typename Equal<StackItem1,Int<False,Natural::Nat<False>>>::value,
-				ELSE, // Top of stack is zero, the only falsey value.
-				IF
-			>::value,IfStackItems...>
-		> Next;
-	};
-}
-
+template<class... Rest, class Stack1, class Stack2, class... StackRest>
+struct ForthMachineConfiguration<Program<SUB,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
+	typedef Stack Out;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		Stack<
+		typename Subtract<Stack1,Stack2>::value
+		,StackRest...>
+	>::Halted Halted;
+};
+template<class... Rest, class Stack1, class Stack2, class... StackRest>
+struct ForthMachineConfiguration<Program<MUL,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
+	typedef Stack Out;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		Stack<
+		typename Multiply<Stack1,Stack2>::value
+		,StackRest...>
+	>::Halted Halted;
+};
+template<class... Rest, class Stack1, class Stack2, class... StackRest>
+struct ForthMachineConfiguration<Program<DIV,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
+	typedef Stack Out;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		Stack<
+		typename Divide<Stack1,Stack2>::value
+		,StackRest...>
+	>::Halted Halted;
+};
+/* Comparator */
+template<class... Rest, class Stack1, class Stack2, class... StackRest>
+struct ForthMachineConfiguration<Program<EQ,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
+	typedef Stack Out;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		Stack<
+		typename Helpers_::ForthCast<typename Equal<Stack1,Stack2>::value>::value
+		,StackRest...>
+	>::Halted Halted;
+};
+/* Conditional */
+template<class IfSoProgram, class IfFalseProgram, class... Rest, class Stack1, class... StackRest>
+struct ForthMachineConfiguration<Program<IF<IfSoProgram,IfFalseProgram>,Rest...>,Stack<Stack1,StackRest...>>{
+	typedef Stack Out;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		typename ForthMachineConfiguration<
+			typename Ternary<typename Equal<Stack1,Int<False,Natural::Nat<>>::value,
+				IfFalseProgram,
+				IfSoProgram
+			>::value,
+			Stack<StackRest...>
+		>::Halted::Out
+	>::Halted Halted;
+};
+/* Loop */
+template<class... LoopProgram, class... Rest, class Stack1, class... StackRest>
+struct ForthMachineConfiguration<Program<LOOP<Program<LoopProgram...>>,Rest...>,Stack<Stack1,StackRest...>>{
+	typedef Stack Out;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		typename ForthMachineConfiguration<
+			typename Ternary<typename Equal<Stack1,Int<False,Natural::Nat<>>>::value,
+				Program<LoopProgram...>,
+				Program<LoopProgram...,LOOP<Program<LoopProgram...>>
+			>,
+			Stack<StackRest...>
+		>::Halted::Out
+	>::Halted Halted;
+};
 
 #undef Helpers_
 #endif
