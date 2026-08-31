@@ -114,6 +114,13 @@ namespace Helpers_{
 
 /* Basics */
 
+template<> struct CastToBool<Nat<>>{
+	typedef False value;
+};
+template<class... Bits> struct CastToBool<Nat<False,Bits...>>{
+	typedef typename CastToBool<Nat<Bits...>>::value value;
+};
+
 template<> struct AddOne<Nat<>>{
 	typedef Nat<True> value;
 };
@@ -355,11 +362,15 @@ struct Add<Nat<True,Bits1...>,Nat<True,Bits2...>>{
 
 namespace Helpers_{
 	template<class Nat1, class Nat2, class Accumulator> struct XMultiply;
+	template<class Nat2, class A>
+	struct XMultiply<Nat<>,Nat2,A>{
+		typedef A value;
+	};
 	template<class... Bits1, class Nat2, class... ABits>
 	struct XMultiply<Nat<False,Bits1...>,Nat2,Nat<ABits...>>{
 		typedef typename Ternary<typename Equal<Nat<Bits1...>,Nat<>>::value,
 			Identity<Nat<ABits...>>,
-			XMultiply<typename SubtractOne<Nat<False,Bits1...>>::value,Nat2,Nat<False,ABits...>>
+			XMultiply<Nat<Bits1...>,Nat2,Nat<False,ABits...>>
 		>::value::value value;
 	};
 	template<class... Bits1, class Nat2, class... ABits>
@@ -372,7 +383,14 @@ namespace Helpers_{
 	};
 }
 template<class Nat1, class Nat2> struct Multiply{
-	typedef typename Helpers_::XMultiply<Nat1,Nat2,Nat<>>::value value;
+	//typedef typename Helpers_::XMultiply<Nat1,Nat2,Nat<>>::value value;
+	typedef typename Add<
+		typename Ternary<typename Equal<Nat1,Nat<>>::value,Nat<>,Nat2>::value,
+		typename Ternary<typename Equal<Nat1,Nat<>>::value,
+			Identity<Nat<>>,
+			Multiply<typename SubtractOne<Nat1>::value,Nat2>
+		>::value::value
+	>::value value;
 };
 
 namespace Helpers_{
