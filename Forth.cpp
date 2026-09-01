@@ -180,7 +180,7 @@ struct ForthMachineConfiguration<Program<LOOP<Program<LoopProgram...>>,Rest...>,
 		Program<Rest...>,
 		typename ForthMachineConfiguration<
 			typename Ternary<typename Equal<Stack1,Int<False,Natural::Nat<>>>::value,
-				Program<LoopProgram...>,
+				Program<>,
 				Program<LoopProgram...,LOOP<Program<LoopProgram...>>>
 			>::value,
 			Stack<StackRest...>
