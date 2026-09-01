@@ -2,6 +2,7 @@
 #define TEMPLATE_INTEGERNUMBERS_
 #include "../Logic.cpp" // Must be up here, otherwise Natural:: adopts it
 namespace Natural{
+	#define BOOLCASTEDNATALT
 	#include "Natural.cpp"
 }
 // See Turing.cpp
@@ -29,6 +30,15 @@ template<class Minuend, class Subtrahend> struct Subtract;
 template<class Numerator, class Denominator> struct Divide;
 
 /* Basics */
+
+template<class... Bits>
+struct CastToBool<Natural::Nat<False,Bits...>>{
+	typedef typename CastToBool<Natural::Nat<Bits...>>::value value;
+};
+template<>
+struct CastToBool<Natural::Nat<>>{
+	typedef False value;
+};
 
 template<class Sign, class Nat>
 struct AddOne<Int<Sign,Nat>>{

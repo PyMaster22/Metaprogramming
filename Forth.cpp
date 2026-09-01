@@ -29,6 +29,7 @@ struct DIV;
 /* Comparison */
 struct EQ;
 /* New words */
+// Use C macros!
 //struct DEF;
 //struct ENDEF;
 /* Conditional */
@@ -52,12 +53,20 @@ struct ForthMachineConfiguration<Program<>,Stack>{
 	typedef ForthMachineConfiguration<
 		Program<>,
 		Stack
-	>::Halted Halted;
+	> Halted;
 };
 /* Stack manipulation */
+// Literal
+template<class IntSign, class IntMagnitude, class... Rest, class... StackRest>
+struct ForthMachineConfiguration<Program<Int<IntSign,IntMagnitude>,Rest...>,Stack<StackRest...>>{
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		Stack<Int<IntSign,IntMagnitude>,StackRest...>
+	>::Halted Halted;
+};
 template<class... Rest, class Stack1, class... StackRest>
 struct ForthMachineConfiguration<Program<DUP,Rest...>,Stack<Stack1,StackRest...>>{
-	typedef Stack Out;
+	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
 		Program<Rest...>,
 		Stack<Stack1,Stack1,StackRest...>
@@ -65,7 +74,7 @@ struct ForthMachineConfiguration<Program<DUP,Rest...>,Stack<Stack1,StackRest...>
 };
 template<class... Rest, class Stack1, class Stack2, class... StackRest>
 struct ForthMachineConfiguration<Program<SWAP,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
-	typedef Stack Out;
+	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
 		Program<Rest...>,
 		Stack<Stack2,Stack1,StackRest...>
@@ -73,7 +82,7 @@ struct ForthMachineConfiguration<Program<SWAP,Rest...>,Stack<Stack1,Stack2,Stack
 };
 template<class... Rest, class Stack1, class... StackRest>
 struct ForthMachineConfiguration<Program<DROP,Rest...>,Stack<Stack1,StackRest...>>{
-	typedef Stack Out;
+	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
 		Program<Rest...>,
 		Stack<StackRest...>
@@ -81,7 +90,7 @@ struct ForthMachineConfiguration<Program<DROP,Rest...>,Stack<Stack1,StackRest...
 };
 template<class... Rest, class Stack1, class Stack2, class... StackRest>
 struct ForthMachineConfiguration<Program<OVER,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
-	typedef Stack Out;
+	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
 		Program<Rest...>,
 		Stack<Stack1,Stack2,Stack1,StackRest...>
@@ -89,7 +98,7 @@ struct ForthMachineConfiguration<Program<OVER,Rest...>,Stack<Stack1,Stack2,Stack
 };
 template<class... Rest, class Stack1, class Stack2, class Stack3, class... StackRest>
 struct ForthMachineConfiguration<Program<ROT,Rest...>,Stack<Stack1,Stack2,Stack3,StackRest...>>{
-	typedef Stack Out;
+	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
 		Program<Rest...>,
 		Stack<Stack3,Stack1,Stack2,StackRest...>
@@ -99,7 +108,7 @@ struct ForthMachineConfiguration<Program<ROT,Rest...>,Stack<Stack1,Stack2,Stack3
 /* Arithmetic */
 template<class... Rest, class Stack1, class Stack2, class... StackRest>
 struct ForthMachineConfiguration<Program<ADD,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
-	typedef Stack Out;
+	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
 		Program<Rest...>,
 		Stack<
@@ -109,7 +118,7 @@ struct ForthMachineConfiguration<Program<ADD,Rest...>,Stack<Stack1,Stack2,StackR
 };
 template<class... Rest, class Stack1, class Stack2, class... StackRest>
 struct ForthMachineConfiguration<Program<SUB,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
-	typedef Stack Out;
+	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
 		Program<Rest...>,
 		Stack<
@@ -119,7 +128,7 @@ struct ForthMachineConfiguration<Program<SUB,Rest...>,Stack<Stack1,Stack2,StackR
 };
 template<class... Rest, class Stack1, class Stack2, class... StackRest>
 struct ForthMachineConfiguration<Program<MUL,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
-	typedef Stack Out;
+	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
 		Program<Rest...>,
 		Stack<
@@ -129,7 +138,7 @@ struct ForthMachineConfiguration<Program<MUL,Rest...>,Stack<Stack1,Stack2,StackR
 };
 template<class... Rest, class Stack1, class Stack2, class... StackRest>
 struct ForthMachineConfiguration<Program<DIV,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
-	typedef Stack Out;
+	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
 		Program<Rest...>,
 		Stack<
@@ -140,7 +149,7 @@ struct ForthMachineConfiguration<Program<DIV,Rest...>,Stack<Stack1,Stack2,StackR
 /* Comparator */
 template<class... Rest, class Stack1, class Stack2, class... StackRest>
 struct ForthMachineConfiguration<Program<EQ,Rest...>,Stack<Stack1,Stack2,StackRest...>>{
-	typedef Stack Out;
+	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
 		Program<Rest...>,
 		Stack<
@@ -151,11 +160,11 @@ struct ForthMachineConfiguration<Program<EQ,Rest...>,Stack<Stack1,Stack2,StackRe
 /* Conditional */
 template<class IfSoProgram, class IfFalseProgram, class... Rest, class Stack1, class... StackRest>
 struct ForthMachineConfiguration<Program<IF<IfSoProgram,IfFalseProgram>,Rest...>,Stack<Stack1,StackRest...>>{
-	typedef Stack Out;
+	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
 		Program<Rest...>,
 		typename ForthMachineConfiguration<
-			typename Ternary<typename Equal<Stack1,Int<False,Natural::Nat<>>::value,
+			typename Ternary<typename Equal<Stack1,Int<False,Natural::Nat<>>>::value,
 				IfFalseProgram,
 				IfSoProgram
 			>::value,
@@ -166,14 +175,14 @@ struct ForthMachineConfiguration<Program<IF<IfSoProgram,IfFalseProgram>,Rest...>
 /* Loop */
 template<class... LoopProgram, class... Rest, class Stack1, class... StackRest>
 struct ForthMachineConfiguration<Program<LOOP<Program<LoopProgram...>>,Rest...>,Stack<Stack1,StackRest...>>{
-	typedef Stack Out;
+	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
 		Program<Rest...>,
 		typename ForthMachineConfiguration<
 			typename Ternary<typename Equal<Stack1,Int<False,Natural::Nat<>>>::value,
 				Program<LoopProgram...>,
-				Program<LoopProgram...,LOOP<Program<LoopProgram...>>
-			>,
+				Program<LoopProgram...,LOOP<Program<LoopProgram...>>>
+			>::value,
 			Stack<StackRest...>
 		>::Halted::Out
 	>::Halted Halted;

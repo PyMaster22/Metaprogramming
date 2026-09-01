@@ -113,13 +113,14 @@ namespace Helpers_{
 }
 
 /* Basics */
-
+#ifndef BOOLCASTEDNATALT
 template<> struct CastToBool<Nat<>>{
 	typedef False value;
 };
 template<class... Bits> struct CastToBool<Nat<False,Bits...>>{
 	typedef typename CastToBool<Nat<Bits...>>::value value;
 };
+#endif
 
 template<> struct AddOne<Nat<>>{
 	typedef Nat<True> value;
