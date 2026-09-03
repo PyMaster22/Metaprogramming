@@ -12,6 +12,7 @@ template<class Nat> struct SubtractOne;
 template<class Nat1, class Nat2> struct Equal;
 template<class Nat1, class Nat2> struct GreaterThan;
 template<class Nat1, class Nat2> struct LessThan;
+template<class Nat> struct Canonizer;
 
 template<class Nat1, class Nat2> struct BitwiseAnd;
 template<class Nat1, class Nat2> struct BitwiseOr;
@@ -30,8 +31,8 @@ namespace Helpers_{
 	template<class Nat> struct StripTrailingFalses;
 	template<class Nat1, class Nat2> struct CheckEqualLength;
 	template<class Nat1, class Nat2> struct CheckLongerThan;
-	template<class Nat1> struct ReverseBits;
-	template<class Nat1> struct BitLength;
+	template<class Nat> struct ReverseBits;
+	template<class Nat> struct BitLength;
 
 	template<class Bit, class... NatBits>
 	struct NatNatToNat<Nat<Bit,Nat<NatBits...>>>{
@@ -225,6 +226,17 @@ template<class Nat1, class Nat2> struct LessThan{
 		typename GreaterThan<Nat1,Nat2>::value,
 		typename Equal<Nat1,Nat2>::value
 	>::value>::value value;
+};
+
+template<>
+struct Canonizer<Nat<>>{
+	typedef Nat<> value;
+};
+template<class Bit1, class... Bits>
+struct Canonizer<Nat<Bit1,Bits...>>{
+	typedef typename Helpers_::NatNatToNat<Nat<Bit1,
+		typename Canonizer<Nat<Bits...>>::value
+	>>::value value;
 };
 
 /* Bitwise */

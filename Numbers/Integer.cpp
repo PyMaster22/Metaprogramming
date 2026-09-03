@@ -16,6 +16,9 @@ template<class Int> struct Negate;
 template<class Int1, class Int2> struct Equal;
 template<class Int1, class Int2> struct GreaterThan;
 template<class Int1, class Int2> struct LessThan;
+template<class Int> struct Canonizer;
+template<class Nat> struct Integrator;
+template<class Int> struct Naturalizer;
 /* // Later idk
 template<class Int1, class Int2> struct BitwiseAnd;
 template<class Int1, class Int2> struct BitwiseOr;
@@ -100,7 +103,13 @@ template<class Int1, class Int2> struct LessThan{
 	// I am not going through that again.
 	typedef typename GreaterThan<Int2,Int1>::value value;
 };
-
+template<class Sign, class Nat>
+struct Canonizer<Int<Sign,Nat>>{
+	typedef typename Ternary<typename Natural::Equal<Nat,Natural::Nat<>>::value,
+		Int<False,Natural::Nat<>>,
+		Int<Sign,typename Natural::Canonizer<Nat>::value>
+	>::value value;
+};
 
 // Trivial!
 template<class Sign1, class Nat1, class Sign2, class Nat2>
@@ -136,6 +145,61 @@ struct Add<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
 };
 template<class Int1, class Int2> struct Subtract{
 	typedef typename Add<Int1,typename Negate<Int2>::value>::value value;
+};
+
+#define SINGLE_ARGUMENT_NATURALIZER(Function) template<class... Bits>\
+struct Function<Natural::Nat<Bits...>>{\
+	/* See below for why Natural:: is fine */\
+	typedef typename Natural::Function<Natural::Nat<Bits...>>::value value;\
+};
+
+#define DOUBLE_ARGUMENT_NATURALIZER(Function) template<class Sign1, class Nat1, class... Bits2>\
+struct Function<Int<Sign1,Nat1>,Natural::Nat<Bits2...>>{\
+	typedef typename Function<Int<Sign1,Nat1>,Int<False,Natural::Nat<Bits2...>>>::value value;\
+};\
+template<class... Bits1, class Sign2, class Nat2>\
+struct Function<Natural::Nat<Bits1...>,Int<Sign2,Nat2>>{\
+	typedef typename Function<Int<False,Natural::Nat<Bits1...>>,Int<Sign2,Nat2>>::value value;\
+};\
+template<class... Bits1, class... Bits2>\
+struct Function<Natural::Nat<Bits1...>,Natural::Nat<Bits2...>>{\
+	/* Sending to Natural:: is fine because that's probably what the user wanted
+	And it still works by the previous two integrations. */\
+	typedef typename Natural::Function<Int<False,Natural::Nat<Bits1...>>,Int<False,Natural::Nat<Bits2...>>>::value value;\
+};
+
+SINGLE_ARGUMENT_NATURALIZER(AddOne)
+SINGLE_ARGUMENT_NATURALIZER(SubtractOne)
+SINGLE_ARGUMENT_NATURALIZER(Negate)
+SINGLE_ARGUMENT_NATURALIZER(Canonizer)
+
+DOUBLE_ARGUMENT_NATURALIZER(Equal)
+DOUBLE_ARGUMENT_NATURALIZER(GreaterThan)
+DOUBLE_ARGUMENT_NATURALIZER(LessThan)
+DOUBLE_ARGUMENT_NATURALIZER(Add)
+DOUBLE_ARGUMENT_NATURALIZER(Multiply)
+DOUBLE_ARGUMENT_NATURALIZER(Subtract)
+DOUBLE_ARGUMENT_NATURALIZER(Divide)
+
+template<class Sign, class Nat>
+struct Integrator<Int<Sign,Nat>>{
+	typedef Int<Sign,Nat> value;
+};
+template<class... Bits>
+struct Integrator<Natural::Nat<Bits...>>{
+	typedef Int<False,Natural::Nat<Bits...>> value;
+};
+template<class Sign, class Nat>
+struct Naturalizer<Int<Sign,Nat>>{
+	//typedef Nat value;
+	typedef Ternary<Sign,
+		Natural::Nat<>,
+		Nat
+	>::value value;
+};
+template<class... Bits>
+struct Naturalizer<Natural::Nat<Bits...>>{
+	typedef Natural::Nat<Bits...> value;
 };
 
 #undef Helpers_
