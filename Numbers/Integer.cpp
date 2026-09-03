@@ -19,14 +19,14 @@ template<class Int1, class Int2> struct LessThan;
 template<class Int> struct Canonizer;
 template<class Nat> struct Integrator;
 template<class Int> struct Naturalizer;
-/* // Later idk
+// Later idk
 template<class Int1, class Int2> struct BitwiseAnd;
 template<class Int1, class Int2> struct BitwiseOr;
 template<class Int1> struct BitwiseNot;
 template<class Int1, class Int2> struct BitwiseXor;
-template<class Int, class ToShift> struct LeftShift;
-template<class Int, class ToShift> struct RightShift;
-*/
+//template<class Int, class ToShift> struct LeftShift;
+//template<class Int, class ToShift> struct RightShift;
+
 template<class Int1, class Int2> struct Add;
 template<class Int1, class Int2> struct Multiply;
 template<class Minuend, class Subtrahend> struct Subtract;
@@ -111,6 +111,25 @@ struct Canonizer<Int<Sign,Nat>>{
 	>::value value;
 };
 
+/* Bitwise */
+template<class Sign1, class Nat1, class Sign2, class Nat2>
+struct BitwiseAnd<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
+	typedef Int<typename And<Sign1,Sign2>::value, typename Natural::BitwiseAnd<Nat1,Nat2>::value> value;
+};
+template<class Sign1, class Nat1, class Sign2, class Nat2>
+struct BitwiseOr<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
+	typedef Int<typename Or<Sign1,Sign2>::value, typename Natural::BitwiseOr<Nat1,Nat2>::value> value;
+};
+template<class Sign, class Nat>
+struct BitwiseNot<Int<Sign,Nat>>{
+	typedef Int<typename Not<Sign>::value, typename Natural::BitwiseNot<Nat>::value> value;
+};
+template<class Sign1, class Nat1, class Sign2, class Nat2>
+struct BitwiseXor<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
+	typedef Int<typename Xor<Sign1,Sign2>::value, typename Natural::BitwiseXor<Nat1,Nat2>::value> value;
+};
+
+/* Arithmetic */
 // Trivial!
 template<class Sign1, class Nat1, class Sign2, class Nat2>
 struct Multiply<Int<Sign1,Nat1>,Int<Sign2,Nat2>>{
@@ -172,6 +191,7 @@ SINGLE_ARGUMENT_NATURALIZER(AddOne)
 SINGLE_ARGUMENT_NATURALIZER(SubtractOne)
 SINGLE_ARGUMENT_NATURALIZER(Negate)
 SINGLE_ARGUMENT_NATURALIZER(Canonizer)
+SINGLE_ARGUMENT_NATURALIZER(BitwiseNot)
 
 DOUBLE_ARGUMENT_NATURALIZER(Equal)
 DOUBLE_ARGUMENT_NATURALIZER(GreaterThan)
@@ -180,6 +200,9 @@ DOUBLE_ARGUMENT_NATURALIZER(Add)
 DOUBLE_ARGUMENT_NATURALIZER(Multiply)
 DOUBLE_ARGUMENT_NATURALIZER(Subtract)
 DOUBLE_ARGUMENT_NATURALIZER(Divide)
+DOUBLE_ARGUMENT_NATURALIZER(BitwiseAnd)
+DOUBLE_ARGUMENT_NATURALIZER(BitwiseOr)
+DOUBLE_ARGUMENT_NATURALIZER(BitwiseXor)
 
 template<class Sign, class Nat>
 struct Integrator<Int<Sign,Nat>>{
