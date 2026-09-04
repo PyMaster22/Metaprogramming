@@ -68,7 +68,7 @@ struct ForthMachineConfiguration<Program<>,Stack,MachineMemory>{
 	typedef MachineMemory MemoryDump; // idk where else this would belong
 	typedef ForthMachineConfiguration<
 		Program<>,
-		Stack
+		Stack,MachineMemory
 	> Halted;
 };
 /* Stack manipulation */
@@ -220,15 +220,17 @@ template<class IfSoProgram, class IfFalseProgram, class... Rest, class Stack1, c
 struct ForthMachineConfiguration<Program<IF<IfSoProgram,IfFalseProgram>,Rest...>,Stack<Stack1,StackRest...>,MachineMemory>{
 	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
-		Program<Rest...>,
-		typename ForthMachineConfiguration<
 			typename Ternary<typename Equal<Stack1,Int<False,Natural::Nat<>>>::value,
 				IfFalseProgram,
 				IfSoProgram
 			>::value,
-			Stack<StackRest...>
-		>::Halted::Out,
-		MachineMemory
+			Stack<StackRest...>,
+			MachineMemory
+		>::Halted MinorProgram;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		typename MinorProgram::Out,
+		typename MinorProgram::MemoryDump
 	>::Halted Halted;
 };
 /* Loop */
@@ -236,15 +238,17 @@ template<class... LoopProgram, class... Rest, class Stack1, class... StackRest, 
 struct ForthMachineConfiguration<Program<LOOP<Program<LoopProgram...>>,Rest...>,Stack<Stack1,StackRest...>,MachineMemory>{
 	// typedef Stack Out;
 	typedef typename ForthMachineConfiguration<
-		Program<Rest...>,
-		typename ForthMachineConfiguration<
 			typename Ternary<typename Equal<Stack1,Int<False,Natural::Nat<>>>::value,
 				Program<>,
 				Program<LoopProgram...,LOOP<Program<LoopProgram...>>>
 			>::value,
-			Stack<StackRest...>
-		>::Halted::Out,
-		MachineMemory
+			Stack<StackRest...>,
+			MachineMemory
+		>::Halted MinorProgram;
+	typedef typename ForthMachineConfiguration<
+		Program<Rest...>,
+		typename MinorProgram::Out,
+		typename MinorProgram::MemoryDump
 	>::Halted Halted;
 };
 /* Memory */
