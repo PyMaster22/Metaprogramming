@@ -120,7 +120,8 @@ struct Evaluate<cons<Application,cons<Lambda,cons<Parameter,Nil>>>,Environment>{
 };
 template<class ExpressionCAR, class ExpressionCDR, class Environment>
 struct Evaluate<cons<ExpressionCAR,ExpressionCDR>,Environment>{
-	typedef cons<
+	// May crash if ExpressionCAR does not become a closure.
+	typedef typename Helpers_::Apply<
 		typename Evaluate<ExpressionCAR,Environment>::value,
 		typename Evaluate<ExpressionCDR,Environment>::value
 	> value;
