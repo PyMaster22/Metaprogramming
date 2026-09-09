@@ -5,7 +5,10 @@
 #define Helpers_ LISPLanguageO6NARP7XDV6MZSP1H7I2HZSWPOOA7Z3O
 
 struct Nil;
-template<class car, class cdr> struct cons;
+template<class car, class cdr> struct cons{
+	typedef car CAR;
+	typedef cdr CDR;
+};
 template<class Name> struct Symbol;
 
 template<class Expression, class TrueCase, class FalseCase> struct If;
@@ -27,6 +30,8 @@ template<class Expression, class Environment> struct Evaluate;
 namespace Helpers_{
 	template<class SymbolName, class Environment> struct SymbolLookup;
 	template<class Closure, class Parameter> struct Apply;
+	
+	template<class Expression> struct IsAtom;
 }
 
 
@@ -39,8 +44,12 @@ namespace Helpers_{
 	struct SymbolLookup<False,Rest>{
 		typedef False value;
 	};
+	template<class SymbolName>
+	struct SymbolLookup<SymbolName,Nil>{
+		typedef SymbolName value;
+	};
 	template<class SymbolName, class Value, class Rest>
-	struct SymbolLookup<SymbolName,cons<cons<SymbolName,Value>,Rest>>{
+	struct SymbolLookup<SymbolName,cons<cons<Symbol<SymbolName>,Value>,Rest>>{
 		typedef Value value;
 	};
 	template<class SymbolName, class TopSymbol, class Rest>
@@ -58,12 +67,16 @@ namespace Helpers_{
 			>
 		>::value value;
 	};
+
+	template<class Expression> struct IsAtom{
+		typedef True value;
+	};
+	template<class CAR, class CDR>
+	struct IsAtom<cons<CAR,CDR>>{
+		typedef False value;
+	};
 }
 
-template<class ExpressionCAR, class ExpressionCDR, class Environment>
-struct Evaluate<cons<ExpressionCAR,ExpressionCDR>,Environment>{
-	// What now??
-};
 template<class SymbolName, class Environment>
 struct Evaluate<Symbol<SymbolName>,Environment>{
 	typedef typename Helpers_::SymbolLookup<SymbolName,Environment>::value value;
@@ -81,19 +94,17 @@ struct Evaluate<Quote<Expression>,Environment>{
 };
 template<class Expression, class Environment>
 struct Evaluate<Atom<Expression>,Environment>{
-	typedef Symbol<True> value;
+	typedef typename Helpers_::IsAtom<
+		typename Evaluate<Expression,Environment>::value
+	>::value value;
 };
-template<class ExpressionCAR, class ExpressionCDR, class Environment>
-struct Evaluate<Atom<cons<ExpressionCAR,ExpressionCDR>>,Environment>{
-	typedef Symbol<False> value;
+template<class Expression, class Environment>
+struct Evaluate<Car<Expression>,Environment>{
+	typedef typename Evaluate<Expression,Environment>::value::CAR value;
 };
-template<class ExpressionCAR, class ExpressionCDR, class Environment>
-struct Evaluate<Car<cons<ExpressionCAR,ExpressionCDR>>,Environment>{
-	typedef typename Evaluate<ExpressionCAR,Environment>::value value;
-};
-template<class ExpressionCAR, class ExpressionCDR, class Environment>
-struct Evaluate<Cdr<cons<ExpressionCAR,ExpressionCDR>>,Environment>{
-	typedef typename Evaluate<ExpressionCDR,Environment>::value value;
+template<class Expression, class Environment>
+struct Evaluate<Cdr<Expression>,Environment>{
+	typedef typename Evaluate<Expression,Environment>::value::CDR value;
 };
 
 template<class Argument, class Expression, class Environment>
@@ -106,6 +117,13 @@ struct Evaluate<Application<Lambda,Parameter>,Environment>{
 		typename Evaluate<Lambda,Environment>::value,
 		typename Evaluate<Parameter,Environment>::value
 	>::value value;
+};
+template<class ExpressionCAR, class ExpressionCDR, class Environment>
+struct Evaluate<cons<ExpressionCAR,ExpressionCDR>,Environment>{
+	typedef cons<
+		typename Evaluate<ExpressionCAR,Environment>::value,
+		typename Evaluate<ExpressionCDR,Environment>::value
+	> value;
 };
 
 #undef Helpers_
