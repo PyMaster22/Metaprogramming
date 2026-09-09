@@ -8,18 +8,15 @@ struct Nil;
 template<class car, class cdr> struct cons;
 template<class Name> struct Symbol;
 
-template<class Expression, class TrueCase, class FalseCase> struct If;
-template<class Expression> struct Quote;
-template<class Expression> struct Atom;
-template<class Expression> struct Car;
-template<class Expression> struct Cdr;
+struct If;
+struct Quote;
+struct Atom;
+struct Car;
+struct Cdr;
 
-template<class Argument, class Expression> struct Lambda;
-template<class Lambda, class Parameter> struct Application;
+struct Lambda;
+struct Application;
 
-// Environment is CONS!
-//template<class Name, class Value> struct Association;
-//template<class... Associations> struct Environment;
 template<class Parameter, class LambdaBody, class Environment> struct Closure;
 
 template<class Expression, class Environment> struct Evaluate;
@@ -60,48 +57,44 @@ namespace Helpers_{
 	};
 }
 
-template<class ExpressionCAR, class ExpressionCDR, class Environment>
-struct Evaluate<cons<ExpressionCAR,ExpressionCDR>,Environment>{
-	// What now??
-};
 template<class SymbolName, class Environment>
 struct Evaluate<Symbol<SymbolName>,Environment>{
 	typedef typename Helpers_::SymbolLookup<SymbolName,Environment>::value value;
 };
 template<class Expression, class TrueCase, class FalseCase, class Environment>
-struct Evaluate<If<Expression,TrueCase,FalseCase>,Environment>{
+struct Evaluate<cons<If,cons<Expression,cons<TrueCase,cons<FalseCase,Nil>>>>,Environment>{
 	typedef typename Ternary<typename Evaluate<Expression,Environment>::value,
 		Evaluate<TrueCase,Environment>,
 		Evaluate<FalseCase,Environment>
 	>::value::value value;
 };
 template<class Expression, class Environment>
-struct Evaluate<Quote<Expression>,Environment>{
+struct Evaluate<cons<Quote,Expression>,Environment>{
 	typedef Expression value;
 };
 template<class Expression, class Environment>
-struct Evaluate<Atom<Expression>,Environment>{
-	typedef Symbol<True> value;
+struct Evaluate<cons<Atom,cons<Expression,Nil>>,Environment>{
+	typedef True value;
 };
 template<class ExpressionCAR, class ExpressionCDR, class Environment>
-struct Evaluate<Atom<cons<ExpressionCAR,ExpressionCDR>>,Environment>{
-	typedef Symbol<False> value;
+struct Evaluate<cons<Atom,cons<ExpressionCAR,ExpressionCDR>>,Environment>{
+	typedef False value;
 };
 template<class ExpressionCAR, class ExpressionCDR, class Environment>
-struct Evaluate<Car<cons<ExpressionCAR,ExpressionCDR>>,Environment>{
+struct Evaluate<cons<Car,cons<ExpressionCAR,ExpressionCDR>>,Environment>{
 	typedef typename Evaluate<ExpressionCAR,Environment>::value value;
 };
 template<class ExpressionCAR, class ExpressionCDR, class Environment>
-struct Evaluate<Cdr<cons<ExpressionCAR,ExpressionCDR>>,Environment>{
+struct Evaluate<cons<Cdr,cons<ExpressionCAR,ExpressionCDR>>,Environment>{
 	typedef typename Evaluate<ExpressionCDR,Environment>::value value;
 };
 
 template<class Argument, class Expression, class Environment>
-struct Evaluate<Lambda<Argument,Expression>,Environment>{
+struct Evaluate<cons<Lambda,cons<Argument,cons<Expression,Nil>>>,Environment>{
 	typedef Closure<Argument,Expression,Environment> value;
 };
 template<class Lambda, class Parameter, class Environment>
-struct Evaluate<Application<Lambda,Parameter>,Environment>{
+struct Evaluate<cons<Application,cons<Lambda,cons<Parameter,Nil>>>,Environment>{
 	typedef typename Helpers_::Apply<
 		typename Evaluate<Lambda,Environment>::value,
 		typename Evaluate<Parameter,Environment>::value
