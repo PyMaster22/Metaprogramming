@@ -23,6 +23,29 @@
 // Generalized K Combinator
 #define FirstArgument(x,...) x
 #define Identity(...) __VA_ARGS__
+// Technically (Identity(...)) but not because macro metaprogramming is weird
 #define IdentityParens(...) (__VA_ARGS__)
+// Same as Identity, but more obvious in purpose.
+#define DeParen(...) __VA_ARGS__
+
+#define GlueHelpers_ActualGlue(x,y) x ## y
+#define Glue(x,y) GlueHelpers_ActualGlue(x,y)
+
+#define IffHelpers_0(IfTrue,IfFalse) IfFalse
+#define IffHelpers_1(IfTrue,IfFalse) IfTrue
+#define IffHelpers_Iff2(Condition,IfTrue,IfFalse) Glue(IffHelpers_,Condition)(IfTrue, IfFalse)
+#define IffHelpers_Iff(Condition,IfTrue,IfFalse) IffHelpers_Iff2(Condition,IfTrue,IfFalse)
+#define Iff(Condition,IfTrue,IfFalse) EVAL(IffHelpers_Iff(Bool(EVAL(Condition)),EVAL(IfTrue),EVAL(IfFalse)))
+
+#define IS_PROBE(...) SecondArgument(__VA_ARGS__,0)
+#define PROBE() idk, 1
+
+#define NotHelpers_0 PROBE()
+#define Not(Bool) IS_PROBE(Glue(NotHelpers_,Bool))
+
+#define Bool(Anything) Not(Not(Anything))
+
+#define HasArgsHelpers_NoArgs() 0
+#define HasArgs(...) Bool(FirstArgument(HasArgsHelpers_NoArgs __VA_ARGS__)())
 
 #endif
