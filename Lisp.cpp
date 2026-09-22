@@ -3,7 +3,7 @@
 #include "Logic.cpp"
 // See Turing.cpp
 #define Helpers_ LISPLanguageO6NARP7XDV6MZSP1H7I2HZSWPOOA7Z3O
-namespace LISP{
+
 
 struct Nil;
 template<class car, class cdr> struct cons{
@@ -48,7 +48,7 @@ namespace Helpers_{
 	};
 	template<class SymbolName>
 	struct SymbolLookup<SymbolName,Nil>{
-		typedef SymbolName value;
+		typedef Symbol<SymbolName> value;
 	};
 	template<class SymbolName, class Value, class Rest>
 	struct SymbolLookup<SymbolName,cons<cons<Symbol<SymbolName>,Value>,Rest>>{
@@ -119,7 +119,7 @@ struct Evaluate<cons<ExpressionCAR,ExpressionCDR>,Environment>{
 	typedef typename Helpers_::Apply<
 		typename Evaluate<ExpressionCAR,Environment>::value,
 		typename Evaluate<ExpressionCDR,Environment>::value
-	> value;
+	>::value value;
 };
 
 template<class... Symbols> struct List;
@@ -148,6 +148,50 @@ struct DeepConsify<List<TopSymbol,Rest...>>{
 	> value;
 };
 
-}
+
+#if 0
+/* Combinators; examples of functions */
+struct X;
+struct Y;
+struct Z;
+#define S \
+cons<                                           \
+	Lambda,                                     \
+	cons<Symbol<X>,                             \
+	cons<cons<                                  \
+		Lambda,                                 \
+		cons<Symbol<Y>,                         \
+		cons<cons<                              \
+			Lambda,                             \
+			cons<Symbol<Z>,                     \
+			cons<                               \
+				cons<cons<Symbol<X>,Symbol<Z>>, \
+				cons<Symbol<Y>,Symbol<Z>>       \
+			>                                   \
+		,Nil>>>                                 \
+	,Nil>>>                                     \
+,Nil>>>
+
+#define K \
+cons<                   \
+	Lambda,             \
+	cons<Symbol<X>,     \
+	cons<cons<          \
+		Lambda,         \
+		cons<Symbol<Y>, \
+		cons<Symbol<X>  \
+	,Nil>>>             \
+,Nil>>>
+
+#define I \
+cons<               \
+	Lambda,         \
+	cons<Symbol<X>, \
+	cons<Symbol<X>  \
+,Nil>>>
+/* or, but there's no difference in function */
+#define I cons<cons<S,K>,K>
+#endif
+
 #undef Helpers_
 #endif
