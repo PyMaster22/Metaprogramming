@@ -18,7 +18,8 @@ struct Car;
 struct Cdr;
 
 struct Lambda;
-struct Application;
+// Unnecessary because cons<closure,cdr> is the same
+//struct Application;
 
 // Environment is CONS!
 //template<class Name, class Value> struct Association;
@@ -110,13 +111,6 @@ struct Evaluate<cons<Cdr,Expression>,Environment>{
 template<class Argument, class Expression, class Environment>
 struct Evaluate<cons<Lambda,cons<Argument,cons<Expression,Nil>>>,Environment>{
 	typedef Closure<Argument,Expression,Environment> value;
-};
-template<class Lambda, class Parameter, class Environment>
-struct Evaluate<cons<Application,cons<Lambda,cons<Parameter,Nil>>>,Environment>{
-	typedef typename Helpers_::Apply<
-		typename Evaluate<Lambda,Environment>::value,
-		typename Evaluate<Parameter,Environment>::value
-	>::value value;
 };
 template<class ExpressionCAR, class ExpressionCDR, class Environment>
 struct Evaluate<cons<ExpressionCAR,ExpressionCDR>,Environment>{
