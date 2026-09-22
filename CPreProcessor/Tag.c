@@ -7,27 +7,30 @@
 // Requires EVAL; Or
 #define RotateList(x,...) (__VA_ARGS__,x)
 
-#define CyclicTag(StringList,Productions) CyclicTag(\
-	Iff(HasArgs FirstArgument Production,\
-		Iff(HasArgs DropFirstArgument StringList,\
-			JoinLists(DropFirstArgument StringList, Iff(FirstArgument StringList,FirstArgument Productions,())),\
-			Iff(FirstArgument StringList,FirstArgument Productions,())\
+#define CyclicTag(StringList,Productions) CyclicTag Iff(HasArgs StringList,\
+	(\
+		Iff(HasArgs FirstArgument Production,\
+			Iff(HasArgs DropFirstArgument StringList,\
+				JoinLists(DropFirstArgument StringList, Iff(FirstArgument StringList,FirstArgument Productions,())),\
+				Iff(FirstArgument StringList,FirstArgument Productions,())\
+			),\
+			DropFirstArgument StringList\
 		),\
-		DropFirstArgument StringList\
+		RotateList Productions\
 	),\
-	RotateList Productions\
+	( (),Productions )\
 )
 
 // Example (line becomes next line):
-//CyclicTag( (1),((1,1),(1,0),(0,0),(0,0)))
-//CyclicTag( (1,1),((1,0),(0,0),(0,0),(1,1)))
-//CyclicTag( (1,1,0),((0,0),(0,0),(1,1),(1,0)))
-//CyclicTag( (1,0,0,0),((0,0),(1,1),(1,0),(0,0)))
-//CyclicTag( (0,0,0,0,0),((1,1),(1,0),(0,0),(0,0)))
-//CyclicTag( (0,0,0,0),((1,0),(0,0),(0,0),(1,1)))
-//CyclicTag( (0,0,0),((0,0),(0,0),(1,1),(1,0)))
-//CyclicTag( (0,0),((0,0),(1,1),(1,0),(0,0)))
-//CyclicTag( (0),((1,1),(1,0),(0,0),(0,0)))
-//CyclicTag( (),((1,0),(0,0),(0,0),(1,1))
-// Error!
+CyclicTag ( (1), ((1,1),(1,0),(0,0),(0,0)) )
+CyclicTag ( (1,1), ((1,0),(0,0),(0,0),(1,1)) )
+CyclicTag ( (1,1,0), ((0,0),(0,0),(1,1),(1,0)) )
+CyclicTag ( (1,0,0,0), ((0,0),(1,1),(1,0),(0,0)) )
+CyclicTag ( (0,0,0,0,0), ((1,1),(1,0),(0,0),(0,0)) )
+CyclicTag ( (0,0,0,0), ((1,0),(0,0),(0,0),(1,1)) )
+CyclicTag ( (0,0,0), ((0,0),(0,0),(1,1),(1,0)) )
+CyclicTag ( (0,0), ((0,0),(1,1),(1,0),(0,0)) )
+CyclicTag ( (0), ((1,1),(1,0),(0,0),(0,0)) )
+CyclicTag ( (), ((1,0),(0,0),(0,0),(1,1)) )
+// Fixed point!
 #endif
