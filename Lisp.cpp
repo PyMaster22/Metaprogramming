@@ -3,6 +3,7 @@
 #include "Logic.cpp"
 // See Turing.cpp
 #define Helpers_ LISPLanguageO6NARP7XDV6MZSP1H7I2HZSWPOOA7Z3O
+namespace LISP{
 
 struct Nil;
 template<class car, class cdr> struct cons{
@@ -121,5 +122,32 @@ struct Evaluate<cons<ExpressionCAR,ExpressionCDR>,Environment>{
 	> value;
 };
 
+template<class... Symbols> struct List;
+// DeepConsify uses generic list templates. List is just given cause LISt Processor
+template<class List> struct DeepConsify;
+template<class Identity> struct DeepConsify{typedef Identity value;};
+template<class SymbolName>
+struct DeepConsify<Symbol<SymbolName>>{
+	typedef Symbol<SymbolName> value;
+};
+template<class car, class cdr>
+struct DeepConsify<cons<car,cdr>>{
+	typedef cons<
+		typename DeepConsify<car>::value,
+		typename DeepConsify<cdr>::value
+	> value;
+};
+template<template<class...> class List> struct DeepConsify<List<>>{
+	typedef Nil value;
+};
+template<template<class...> class List, class TopSymbol, class... Rest>
+struct DeepConsify<List<TopSymbol,Rest...>>{
+	typedef cons<
+		typename DeepConsify<TopSymbol>::value,
+		typename DeepConsify<List<Rest...>>::value
+	> value;
+};
+
+}
 #undef Helpers_
 #endif
