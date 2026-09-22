@@ -3,6 +3,7 @@
 #include "Logic.cpp"
 // See Turing.cpp
 #define Helpers_ LISPLanguageO6NARP7XDV6MZSP1H7I2HZSWPOOA7Z3O
+namespace LISP{
 
 struct Nil;
 template<class car, class cdr> struct cons{
@@ -18,7 +19,8 @@ struct Car;
 struct Cdr;
 
 struct Lambda;
-struct Application;
+// Unnecessary because cons<closure,cdr> is the same
+//struct Application;
 
 // Environment is CONS!
 //template<class Name, class Value> struct Association;
@@ -111,13 +113,6 @@ template<class Argument, class Expression, class Environment>
 struct Evaluate<cons<Lambda,cons<Argument,cons<Expression,Nil>>>,Environment>{
 	typedef Closure<Argument,Expression,Environment> value;
 };
-template<class Lambda, class Parameter, class Environment>
-struct Evaluate<cons<Application,cons<Lambda,cons<Parameter,Nil>>>,Environment>{
-	typedef typename Helpers_::Apply<
-		typename Evaluate<Lambda,Environment>::value,
-		typename Evaluate<Parameter,Environment>::value
-	>::value value;
-};
 template<class ExpressionCAR, class ExpressionCDR, class Environment>
 struct Evaluate<cons<ExpressionCAR,ExpressionCDR>,Environment>{
 	// May crash if ExpressionCAR does not become a closure.
@@ -127,5 +122,32 @@ struct Evaluate<cons<ExpressionCAR,ExpressionCDR>,Environment>{
 	> value;
 };
 
+template<class... Symbols> struct List;
+// DeepConsify uses generic list templates. List is just given cause LISt Processor
+template<class List> struct DeepConsify;
+template<class Identity> struct DeepConsify{typedef Identity value;};
+template<class SymbolName>
+struct DeepConsify<Symbol<SymbolName>>{
+	typedef Symbol<SymbolName> value;
+};
+template<class car, class cdr>
+struct DeepConsify<cons<car,cdr>>{
+	typedef cons<
+		typename DeepConsify<car>::value,
+		typename DeepConsify<cdr>::value
+	> value;
+};
+template<template<class...> class List> struct DeepConsify<List<>>{
+	typedef Nil value;
+};
+template<template<class...> class List, class TopSymbol, class... Rest>
+struct DeepConsify<List<TopSymbol,Rest...>>{
+	typedef cons<
+		typename DeepConsify<TopSymbol>::value,
+		typename DeepConsify<List<Rest...>>::value
+	> value;
+};
+
+}
 #undef Helpers_
 #endif
